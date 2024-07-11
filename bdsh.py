@@ -14,15 +14,16 @@ class Shell:
         self.header = f"BadOS Dynamic Shell (v0.1) {'(BadBandSSH)' if is_ssh else ''}{newline}(c) Bad Technologies. All rights reserved.{newline}"
 
         self.commands = {
-            "exit": lambda args: exit(0),
-            "help": lambda args: self.print("haha no")
+            "exit": lambda _: exit(0),
+            "help": lambda _: self.print("haha no"),
+            "echo": lambda args: self.print(' '.join(args[1:]))
         }
 
     def run_line(self, line: str):
-        args = line.lower().split(' ')
+        args = line.split(' ')
 
         if args[0] in self.commands:
-            self.commands[args[0]](args)
+            self.commands[args[0].lower()](args)
         else:
             self.print(f"Invalid command: {args[0]}")
 
