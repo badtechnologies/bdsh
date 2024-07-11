@@ -22,7 +22,7 @@ if __name__ == "__main__":
     print_header("INIT BDSH")
     print(bdsh.get_header().decode())
 
-    dirs = ['bin', 'conf', 'usr']
+    dirs = ['core', 'cfg', 'prf', 'exec']
 
     try:
         if not os.path.exists('bdsh'):
@@ -64,11 +64,11 @@ if __name__ == "__main__":
         if username is None:
             break
 
-    with open('bdsh/conf/users.json', 'w') as f:
+    with open('bdsh/cfg/users.json', 'w') as f:
         json.dump(users, f)
 
     for username in users.keys():
-        path = os.path.join('bdsh/usr', username)
+        path = os.path.join('bdsh/prf', username)
         if not os.path.exists(path):
             os.mkdir(path)
 
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     print_header("SETUP BADBANDSSH")
 
     key = RSAKey.generate(bits=2048)
-    key.write_private_key_file('bdsh/conf/badbandssh_rsa_key')
+    key.write_private_key_file('bdsh/cfg/badbandssh_rsa_key')
     print("Stored BadBandSSH private key")
 
     print_header("CLEANING UP")
