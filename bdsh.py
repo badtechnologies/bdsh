@@ -48,9 +48,14 @@ class Shell:
                     self.run_line(''.join(buffer))
                     buffer.clear()
                     self.print(self.get_prompt())
-                elif char == '\x03':
+                elif char == '\x03':    # ^C
                     buffer.clear()
                     self.print(self.get_prompt())
+                elif char == '\x7f':    # backspace
+                    if len(buffer) <= 0:
+                        continue
+                    self.print('\x08 \x08')
+                    buffer.pop()
                 else:
                     buffer.append(char)
 
