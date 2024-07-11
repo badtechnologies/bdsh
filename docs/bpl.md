@@ -23,5 +23,5 @@ For more information, run `bpm help`, or see the [bpm docs](bpm.md).
 Packages are located at
 
 ```url
-https://raw.githubusercontent.com/badtechnologies/bdsh-core/main/bpl/<package name>
+https://raw.githubusercontent.com/badtechnologies/bdsh/main/bpl/<package name>
 ```
