@@ -47,23 +47,8 @@ def handle_client(client_socket):
         if not server.event.is_set():
             raise Exception("No shell request")
         
-        buffer = []
-
-        channel.send(bdsh.get_header(is_ssh=True))
-        channel.send(bdsh.get_prompt())
-
-        while True:
-            char = channel.recv(1024)
-            channel.send(char)
-            
-            if char == b'\x03':
-                break
-            elif char == b'\r':
-                channel.send(b'\n'+bdsh.run_line(b''.join(buffer)))
-                buffer.clear()
-                channel.send(bdsh.get_prompt())
-            else:
-                buffer.append(char)
+        instance = bdsh.Shell(lambda s: channel.send(s.encode()), lambda: channel.recv(1).decode(), is_ssh=True)
+        instance.start()
         
         channel.close()
     except Exception as e:
@@ -71,19 +56,22 @@ def handle_client(client_socket):
     finally:
         transport.close()
 
-def start_server(port=2200):
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind(("", port))
-    server_socket.listen(100)
+def start(port=2200):
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(("", port))
+        sock.listen(100)
+
+        print(f"Listening for connection on port {port} ...")
     
-    print(f"Listening for connection on port {port} ...")
-    
-    while True:
-        client_socket, addr = server_socket.accept()
-        print(f"Connection from {addr}")
-        client_thread = threading.Thread(target=handle_client, args=(client_socket,))
-        client_thread.start()
+        while True:
+            client, addr = sock.accept()
+            print(f"Connection from {addr}")
+            threading.Thread(target=handle_client, args=(client,)).start()
+    except KeyboardInterrupt:
+        sock.shutdown(socket.SHUT_RDWR)
+        sock.close()
 
 if __name__ == "__main__":
-    start_server()
+    start()
