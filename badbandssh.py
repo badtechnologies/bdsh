@@ -4,11 +4,11 @@ import paramiko
 import json
 import bdsh
 
-with open("users.json", 'r') as f:
+with open("bdsh/conf/users.json", 'r') as f:
     USERS = json.load(f)
 
 # Load the host key
-host_key = paramiko.RSAKey(filename="server_rsa_key")
+host_key = paramiko.RSAKey(filename='bdsh/conf/badbandssh_rsa_key')
 
 class SSHServer(paramiko.ServerInterface):
     def __init__(self):
@@ -49,7 +49,7 @@ def handle_client(client_socket):
         
         buffer = []
 
-        channel.send(bdsh.get_header())
+        channel.send(bdsh.get_header(is_ssh=True))
         channel.send(bdsh.get_prompt())
 
         while True:
