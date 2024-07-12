@@ -5,7 +5,7 @@ import os
 import subprocess
 from typing import TextIO
 
-newline = '\r\n'
+nl = '\r\n'
 root_dir = os.path.abspath('bdsh')
 
 
@@ -17,14 +17,19 @@ class Shell:
         self.readchar = lambda: self.stdin.read(1)
         self.is_ssh = is_ssh
 
-        self.header = f"BadOS Dynamic Shell (v0.1) {'(BadBandSSH)' if is_ssh else ''}{newline}(c) Bad Technologies. All rights reserved.{newline}"
+        self.header = f"BadOS Dynamic Shell (v0.1) {'(BadBandSSH)' if is_ssh else ''}{nl}(c) Bad Technologies. All rights reserved.{nl}"
 
         self.commands = {
             "exit": lambda _: exit(0),
             "help": lambda _: self.print("haha no"),
             "echo": lambda args: self.print(' '.join(args[1:])),
             "ld": self.cmd_ld,
+            "ver": lambda _: self.print(self.header),
+            "def": self.cmd_def,
+            "throw": self.cmd_throw,
         }
+
+        self.definitions = {}
 
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
@@ -35,15 +40,38 @@ class Shell:
         except FileNotFoundError:
             self.print(f"{args[0]}: {args[1]}: does not exist")
 
+    def cmd_def(self, args):
+        if '-h' in args or '--help' in args:
+            self.print(f"usage: def <keyword> <definition>{nl}binds <keyword> to <definition>{nl}executing <keyword> will execute <definition>")
+            return
+        
+        if len(args) < 3:
+            self.print(f"def: missing params (at least 3)")
+            return
+
+        definition = " ".join(args[2:])
+
+        if args[1] == definition:
+            self.print(f"def: keyword cannot be the same as the definition")
+            return
+
+        self.definitions[args[1]] = definition
+        self.print(f"defined '{args[1]}' to run '{definition}'")
+
+    def cmd_throw(self, args):
+        raise Exception(' '.join(args[1:]))
+
     def run_line(self, line: str):
         if line == "":
             return
 
-        args = line.split(' ')
+        args = line.lower().split(' ')
 
-        if args[0] in self.commands:
+        if args[0] in self.definitions:
+            self.run_line(self.definitions[args[0]] + ' '.join(args[1:]))
+        elif args[0] in self.commands:
             try:
-                self.commands[args[0].lower()](args)
+                self.commands[args[0]](args)
             except Exception as e:
                 self.print(f"{args[0]}: {e}")
         elif os.path.exists(bin := self.get_path("exec", args[0])):
@@ -56,17 +84,17 @@ class Shell:
             self.print(f"Invalid command: {args[0]}")
 
     def get_prompt(self):
-        return f"{newline}$ "
+        return f"{nl}$ "
     
     def get_path(self, *paths: str):
         dir = os.path.abspath(os.path.join(root_dir, *paths))
         return dir if dir.startswith(root_dir) else root_dir
 
     def start(self):
-        self.print(self.header)
+        self.run_line("ver")
 
         if not os.path.exists(self.get_path()):
-            self.print(f"bdsh: bdsh directory does not exist{newline}")
+            self.print(f"bdsh: bdsh directory does not exist{nl}")
             exit(1)
 
         self.print(self.get_prompt())
@@ -100,6 +128,11 @@ class Shell:
             except KeyboardInterrupt:
                 buffer.clear()
                 self.print(self.get_prompt())
+                continue
+
+            except Exception as e:
+                buffer.clear()
+                self.print(f"bdsh: unhandled exception: {e}{nl}{self.get_prompt()}")
                 continue
 
 

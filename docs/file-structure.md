@@ -20,6 +20,7 @@ Profile-specific home directories contain certain local profile files, such as:
 
 bdsh runs binaries in this order:
 
-1. bdsh scripts: e.g. echo, exit
-2. exec/
-3. prf/[username]/exec/
+1. definitions (set with `def` command)
+2. bdsh scripts: e.g. echo, exit
+3. exec/
+4. prf/[username]/exec/
