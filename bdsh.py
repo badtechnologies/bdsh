@@ -23,6 +23,9 @@ class Shell:
             "ld": self.cmd_ld,
         }
 
+        self.env = os.environ.copy()
+        self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
+
     def cmd_ld(self, args):
         try:
             self.print('\t'.join([item + '/' if os.path.isdir(os.path.join(self.get_path(args[1] if len(args) > 1 else ""), item)) else item for item in os.listdir(self.get_path(args[1] if len(args) > 1 else ""))]))
@@ -41,7 +44,7 @@ class Shell:
             except Exception as e:
                 self.print(f"{args[0]}: {e}")
         elif os.path.exists(bin := self.get_path("exec", args[0])):
-            subprocess.run([sys.executable, bin] + args[1:], stdout=sys.stdout, stderr=subprocess.STDOUT, text=True)
+            subprocess.run([sys.executable, bin] + args[1:], stdout=sys.stdout, stderr=subprocess.STDOUT, text=True, env=self.env)
         else:
             self.print(f"Invalid command: {args[0]}")
 
