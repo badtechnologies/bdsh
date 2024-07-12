@@ -23,7 +23,7 @@ class Shell:
 
         self.commands = {
             "exit": lambda _: exit(0),
-            "help": lambda _: self.print("haha no"),
+            "help": lambda _: self.print(f"bdsh commands:{nl}{'\t'.join(self.commands.keys())}"),
             "echo": lambda args: self.print(' '.join(args[1:])),
             "ld": self.cmd_ld,
             "ver": lambda _: self.print(self.header),
