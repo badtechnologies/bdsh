@@ -1,0 +1,33 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"name": {
+			"type": "string"
+		},
+		"version": {
+			"type": "string"
+		},
+		"author": {
+			"type": "string"
+		},
+		"bin": {
+			"type": "string"
+		},
+		"homepage": {
+			"type": "string"
+		},
+		"requires": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		}
+	},
+	"required": [
+		"name",
+		"version",
+		"author",
+		"bin"
+	]
+}
