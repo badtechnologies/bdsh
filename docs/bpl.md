@@ -1,4 +1,4 @@
-[❮ Back](..)
+[❮ Back](.)
 
 # BadOS Dynamic Shell Package Library (bpl)
 

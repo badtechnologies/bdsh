@@ -1,4 +1,4 @@
-[❮ Back](..)
+[❮ Back](.)
 
 # BadOS Package Manager (bpm)
 
