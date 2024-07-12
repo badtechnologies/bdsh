@@ -2,10 +2,11 @@
 
 ## Table of Contents
 
-- [BadOS Dynamic Shell (bdsh)](#bados-dynamic-shell-bdsh)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-  - [Usage](#usage)
+- [BadOS Dynamic Shell Package Library (bpl)](bpl.md)
+- [BadOS Package Manager (bpm)](bpm.md)
+- [BadBandSSH (bssh)](bssh.md)
+- [System File Structure](file-structure.md)
+- [BadOS Dynamic Shell (bdsh)](index.md)
 
 ## Installation
 
