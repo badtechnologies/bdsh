@@ -3,6 +3,8 @@ import bdsh
 import json
 import os
 from paramiko import RSAKey
+import requests
+import sys
 
 
 def prompt(prompt: str, on_cancel: callable, **default: str):
@@ -73,6 +75,58 @@ if __name__ == "__main__":
             os.mkdir(path)
 
     print(f"Created {len(users)} user(s)")
+
+    print_header("INSTALL BPM")
+
+    BPL_URI = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/bpl"
+
+    install_packages = True
+    while install_packages:
+        res = requests.get(f'{BPL_URI}/bpm/bpl.json')
+
+        if not res.ok:
+            print(f"""Something went wrong while fetching bpm from bpl, more information below:
+\tError:\t\tHTTP {res.status_code} {res.reason}
+\tLibrary:\t{BPL_URI}
+\tResponse:\t{res.content.decode()}""")
+
+            prompt("Try again?", lambda: globals().update(
+                install_packages=False))
+        else:
+            break
+
+    if install_packages:
+        meta = res.json()
+        print(f"Installing bpm-{meta['version']} ({meta['name']})")
+        res = requests.get(f'{BPL_URI}/bpm/{meta['bin']}')
+
+        while install_packages:
+            if not res.ok:
+                print(f"""Something went wrong while downloading bpm binaries, more information below:
+\tError:\t\tHTTP {res.status_code} {res.reason}
+\tLibrary:\t{BPL_URI}
+\tResponse:\t{res.content.decode()}
+\tRequested Bin:\t{meta['bin']}
+\tMetadata:\t{meta}""")
+
+                prompt("Try again?", lambda: globals().update(install_packages=False))
+            else:
+                break
+
+    virtsh = bdsh.Shell(sys.stdout, sys.stdin)
+
+    if install_packages:
+        with open(virtsh.get_path('exec', 'bpm'), 'wb') as f:
+            f.write(res.content)
+
+        print(f"Installation complete: bpm is installed")
+
+        print_header("INSTALL PACKAGES")
+
+        virtsh.run_line("bpm install -y core")
+
+    else:
+        print("[!] bpm could not be installed, no packages installed.")
 
     print_header("SETUP BADBANDSSH")
 
