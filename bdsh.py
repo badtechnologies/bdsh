@@ -16,6 +16,8 @@ class Shell:
         self.print = lambda s: self.stdout.write(s)
         self.readchar = lambda: self.stdin.read(1)
         self.is_ssh = is_ssh
+        self.path = self.get_path("")
+        self.cwd = lambda: os.path.relpath(self.path, root_dir).replace('.', '/', 1)
 
         self.header = f"BadOS Dynamic Shell (v0.1) {'(BadBandSSH)' if is_ssh else ''}{nl}(c) Bad Technologies. All rights reserved.{nl}"
 
@@ -27,6 +29,8 @@ class Shell:
             "ver": lambda _: self.print(self.header),
             "def": self.cmd_def,
             "throw": self.cmd_throw,
+            "cwd": lambda _: self.print(self.cwd()),
+            "go": self.cmd_go,
         }
 
         self.definitions = {}
@@ -60,6 +64,12 @@ class Shell:
 
     def cmd_throw(self, args):
         raise Exception(' '.join(args[1:]))
+    
+    def cmd_go(self, args):
+        if os.path.exists(path := self.get_path(args[1])):
+            self.path = path
+        else:
+            raise FileNotFoundError(f"{args[1]}: no such file or folder")
 
     def run_line(self, line: str):
         if line == "":
@@ -84,7 +94,7 @@ class Shell:
             self.print(f"Invalid command: {args[0]}")
 
     def get_prompt(self):
-        return f"{nl}$ "
+        return f"{nl}{self.cwd()}$ "
     
     def get_path(self, *paths: str):
         dir = os.path.abspath(os.path.join(root_dir, *paths))
