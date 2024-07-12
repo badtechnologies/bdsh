@@ -12,12 +12,9 @@
 
 ## Installation
 
-1. **Clone the repository:**
+1. **Download the latest release**
 
-    ```sh
-    git clone https://github.com/badtechnologies/bdsh.git
-    cd bdsh
-    ```
+    Or, you can directly download `config.py` and `bdsh.py` from the [repo](https://github.com/badtechnologies/bdsh).
 
 2. **Setup bdsh:**
 
@@ -27,17 +24,13 @@
 
     Follow the on-screen instructions.
 
-3. **Run the project:**
+    > #### ℹ️ Note
+    > At least ONE user must exist for bdsh to function
+
+    Once the `/bdsh` directory and your configs are prepared, you can start bdsh with `bdsh.py` to launch the interactive shell.
+
+3. **Launch bdsh:**
 
     ```sh
     python3 bdsh.py
     ```
-
-## Usage
-
-Run the `config.py` script, and follow the on-screen instructions.
-
-> [!NOTE]
-> At least ONE user must exist for bdsh to function
-
-Once the `/bdsh` directory and your configs are prepared, you can start bdsh with `bdsh.py` to launch the interactive shell.

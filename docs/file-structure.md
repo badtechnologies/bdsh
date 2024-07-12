@@ -4,6 +4,8 @@
 
 This document provides an overview of the file and folder structure of bdsh (Bados Dynamic Shell).
 
+The system file structure will be created automatically with the bdsh configuration tool (config.py).
+
 ## Root Directory
 
 - **bdsh/**: main directory
