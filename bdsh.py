@@ -40,7 +40,9 @@ class Shell:
 
     def cmd_ld(self, args):
         try:
-            self.print('\t'.join([item + '/' if os.path.isdir(os.path.join(self.get_path(args[1] if len(args) > 1 else ""), item)) else item for item in os.listdir(self.get_path(args[1] if len(args) > 1 else ""))]))
+            dir = self.get_path(args[1]) if len(args) > 1 else self.path
+            items = os.listdir(dir)
+            self.print('\t'.join([item + '/' if os.path.isdir(os.path.join(dir, item)) else item for item in items]))
         except FileNotFoundError:
             self.print(f"{args[0]}: {args[1]}: does not exist")
 
