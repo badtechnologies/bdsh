@@ -47,6 +47,10 @@ class Shell:
             except Exception as e:
                 self.print(f"{args[0]}: {e}")
         elif os.path.exists(bin := self.get_path("exec", args[0])):
+            if self.is_ssh:
+                self.print(f"{args[0]} is unsupported over SSH")
+                return
+
             subprocess.run([sys.executable, bin] + args[1:], stdout=self.stdout, stderr=subprocess.STDOUT, stdin=self.stdin, text=True, env=self.env)
         else:
             self.print(f"Invalid command: {args[0]}")
