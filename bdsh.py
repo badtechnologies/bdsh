@@ -3,15 +3,18 @@
 import sys
 import os
 import subprocess
+from typing import TextIO
 
 newline = '\r\n'
 root_dir = os.path.abspath('bdsh')
 
 
 class Shell:
-    def __init__(self, stdout: callable, stdin: callable, **is_ssh: bool):
-        self.print = stdout
-        self.readchar = stdin
+    def __init__(self, stdout: TextIO, stdin: TextIO, **is_ssh: bool):
+        self.stdout = stdout
+        self.stdin = stdin
+        self.print = lambda s: self.stdout.write(s)
+        self.readchar = lambda: self.stdin.read(1)
         self.is_ssh = is_ssh
 
         self.header = f"BadOS Dynamic Shell (v0.1) {'(BadBandSSH)' if is_ssh else ''}{newline}(c) Bad Technologies. All rights reserved.{newline}"
@@ -44,7 +47,7 @@ class Shell:
             except Exception as e:
                 self.print(f"{args[0]}: {e}")
         elif os.path.exists(bin := self.get_path("exec", args[0])):
-            subprocess.run([sys.executable, bin] + args[1:], stdout=sys.stdout, stderr=subprocess.STDOUT, text=True, env=self.env)
+            subprocess.run([sys.executable, bin] + args[1:], stdout=self.stdout, stderr=subprocess.STDOUT, stdin=self.stdin, text=True, env=self.env)
         else:
             self.print(f"Invalid command: {args[0]}")
 
@@ -97,5 +100,5 @@ class Shell:
 
 
 if __name__ == "__main__":
-    bdsh = Shell(sys.stdout.write, lambda: sys.stdin.read(1))
+    bdsh = Shell(sys.stdout, sys.stdin)
     bdsh.start()
