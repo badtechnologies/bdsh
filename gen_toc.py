@@ -17,13 +17,16 @@ def generate_table_of_contents(directory):
 
             # get titles
             with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
-                first_line = f.readline().strip()[2:]
+                for i, line in enumerate(f):
+                    if i == 2:
+                        title = line.strip()[2:]
+                        break
 
             depth = filepath.count(os.path.sep)
             indent = '  ' * depth
             
             # construct entry
-            toc.append(f"{indent}- [{first_line}]({filepath})")
+            toc.append(f"{indent}- [{title}]({filepath})")
 
     return "\n".join(toc)
 
