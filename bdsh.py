@@ -2,6 +2,7 @@
 
 import sys
 import os
+import subprocess
 
 newline = '\r\n'
 root_dir = os.path.abspath('bdsh')
@@ -29,6 +30,9 @@ class Shell:
             self.print(f"{args[0]}: {args[1]}: does not exist")
 
     def run_line(self, line: str):
+        if line == "":
+            return
+
         args = line.split(' ')
 
         if args[0] in self.commands:
@@ -36,14 +40,16 @@ class Shell:
                 self.commands[args[0].lower()](args)
             except Exception as e:
                 self.print(f"{args[0]}: {e}")
+        elif os.path.exists(bin := self.get_path("exec", args[0])):
+            subprocess.run([sys.executable, bin] + args[1:], stdout=sys.stdout, stderr=subprocess.STDOUT, text=True)
         else:
             self.print(f"Invalid command: {args[0]}")
 
     def get_prompt(self):
         return f"{newline}$ "
     
-    def get_path(self, path=""):
-        dir = os.path.abspath(os.path.join(root_dir, path))
+    def get_path(self, *paths: str):
+        dir = os.path.abspath(os.path.join(root_dir, *paths))
         return dir if dir.startswith(root_dir) else root_dir
 
     def start(self):
