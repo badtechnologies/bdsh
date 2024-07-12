@@ -20,9 +20,9 @@ if __name__ == "__main__":
     prompt("This will replace your current bdsh configs, proceed?", lambda: exit(0))
 
     print_header("INIT BDSH")
-    print(bdsh.get_header().decode())
+    print(bdsh.Shell(None, None).header)
 
-    dirs = ['core', 'cfg', 'prf', 'exec']
+    dirs = ['cfg', 'prf', 'exec']
 
     try:
         if not os.path.exists('bdsh'):
