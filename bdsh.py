@@ -31,6 +31,7 @@ class Shell:
             "throw": self.cmd_throw,
             "cwd": lambda _: self.print(self.cwd()),
             "go": self.cmd_go,
+            "peek": self.cmd_peek,
         }
 
         self.definitions = {}
@@ -72,6 +73,13 @@ class Shell:
             self.path = path
         else:
             raise FileNotFoundError(f"{args[1]}: no such file or folder")
+        
+    def cmd_peek(self, args):
+        if os.path.isfile(path := os.path.join(self.path, args[1])):
+            with open(path, 'r') as f:
+                self.print(f.read())
+        else:
+            raise FileNotFoundError(f"{args[1]}: no such file")
 
     def run_line(self, line: str):
         if line == "":
