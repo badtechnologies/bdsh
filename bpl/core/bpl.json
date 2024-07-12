@@ -1,0 +1,8 @@
+{
+	"name": "bdsh core packages",
+	"version": "0.1",
+	"author": "Logan Dhillon",
+	"requires": [
+		"bssh"
+	]
+}
