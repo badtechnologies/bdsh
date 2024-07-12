@@ -50,3 +50,9 @@ You can access a JSON schema for the `bpl.json` file at <https://raw.githubuserc
 
 Most of this is self-explanatory. The `bin` key should point to the script to download. `"main.py"` tells bpm to download `main.py` from your package root.
 The file name will be discarded by bpm, and will be renamed to the name of your package. It is best practice to name your binary the same as your package.
+
+Only `name`, `version`, and `author` must be included to make a valid package.
+
+Not including `bin` will not download any binaries for your package; useful for package groups.
+
+Not including `requires` will not download any dependencies.

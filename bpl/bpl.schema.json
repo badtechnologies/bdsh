@@ -27,7 +27,6 @@
 	"required": [
 		"name",
 		"version",
-		"author",
-		"bin"
+		"author"
 	]
 }
