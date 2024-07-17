@@ -25,6 +25,7 @@ In the package root, create a `bpl.json` file, with the following contents:
  "author": "Me!",
  "bin": "example.py",
  "homepage": "https://example.com",
+ "license": "MIT",
  "requires": [
   "packagename",
   "another-package"
