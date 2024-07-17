@@ -78,16 +78,16 @@ if __name__ == "__main__":
 
     print_header("INSTALL BPM")
 
-    BPL_URI = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/bpl"
+    BPI_URL = "https://raw.githubusercontent.com/badtechnologies/bpl/main/lib"
 
     install_packages = True
     while install_packages:
-        res = requests.get(f'{BPL_URI}/bpm/bpl.json')
+        res = requests.get(f'{BPI_URL}/bpm/bpl.json')
 
         if not res.ok:
             print(f"""Something went wrong while fetching bpm from bpl, more information below:
 \tError:\t\tHTTP {res.status_code} {res.reason}
-\tLibrary:\t{BPL_URI}
+\tLibrary:\t{BPI_URL}
 \tResponse:\t{res.content.decode()}""")
 
             prompt("Try again?", lambda: globals().update(
@@ -98,13 +98,13 @@ if __name__ == "__main__":
     if install_packages:
         meta = res.json()
         print(f"Installing bpm-{meta['version']} ({meta['name']})")
-        res = requests.get(f'{BPL_URI}/bpm/{meta['bin']}')
+        res = requests.get(f'{BPI_URL}/bpm/{meta['bin']}')
 
         while install_packages:
             if not res.ok:
                 print(f"""Something went wrong while downloading bpm binaries, more information below:
 \tError:\t\tHTTP {res.status_code} {res.reason}
-\tLibrary:\t{BPL_URI}
+\tLibrary:\t{BPI_URL}
 \tResponse:\t{res.content.decode()}
 \tRequested Bin:\t{meta['bin']}
 \tMetadata:\t{meta}""")
