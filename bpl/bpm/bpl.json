@@ -1,6 +1,0 @@
-{
-	"name": "BadOS Package Manager",
-	"version": "0.1",
-	"author": "Logan Dhillon",
-	"bin": "bpm.py"
-}
