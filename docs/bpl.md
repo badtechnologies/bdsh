@@ -9,7 +9,7 @@ Contains all packages avaliable to install for bdsh.
 Packages are located at
 
 ```url
-https://raw.githubusercontent.com/badtechnologies/bdsh/main/bpl/<package name>
+https://raw.githubusercontent.com/badtechnologies/bpl/main/lib/<package name>
 ```
 
 ## Creating packages
@@ -25,6 +25,7 @@ In the package root, create a `bpl.json` file, with the following contents:
  "author": "Me!",
  "bin": "example.py",
  "homepage": "https://example.com",
+ "license": "MIT",
  "requires": [
   "packagename",
   "another-package"
@@ -32,7 +33,7 @@ In the package root, create a `bpl.json` file, with the following contents:
 }
 ```
 
-You can access a JSON schema for the `bpl.json` file at <https://raw.githubusercontent.com/badtechnologies/bdsh/main/bpl/bpl.schema.json>
+You can access a JSON schema for the `bpl.json` file at <https://raw.githubusercontent.com/badtechnologies/bpl/main/bpl.schema.json>
 
 Most of this is self-explanatory. The `bin` key should point to the script to download. `"example.py"` tells bpm to download `example.py` from your package root.
 The file name will be discarded by bpm, and will be renamed to the name of your package. It is best practice to name your binary the same as your package.
