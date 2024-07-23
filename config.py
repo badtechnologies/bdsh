@@ -21,6 +21,13 @@ def print_header(header: str):
 if __name__ == "__main__":
     prompt("This will replace your current bdsh configs, proceed?", lambda: exit(0))
 
+    print_header("SETUP ENV")
+    if 'VIRTUAL_ENV' in os.environ:
+        print("You are in a virtual environment")
+    else:
+        print("You are not in a virtual environment")
+
+
     print_header("INIT BDSH")
     print(bdsh.Shell(None, None).header)
 
@@ -98,7 +105,7 @@ if __name__ == "__main__":
     if install_packages:
         meta = res.json()
         print(f"Installing bpm-{meta['version']} ({meta['name']})")
-        res = requests.get(f'{BPI_URL}/bpm/{meta['bin']}')
+        res = requests.get(f'{BPI_URL}/bpm/{meta["bin"]}')
 
         while install_packages:
             if not res.ok:
