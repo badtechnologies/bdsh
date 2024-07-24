@@ -2,9 +2,19 @@ from getpass import getpass
 import bdsh
 import json
 import os
-from paramiko import RSAKey
-import requests
 import sys
+import subprocess
+
+
+def install_package(package_name: str):
+    package_name = package_name.strip()
+    try:
+        print(f"\nInstalling '{package_name}'")
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", package_name])
+        print(f"Python package '{package_name}' installed successfully")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to install Python package '{package_name}': {e}")
 
 
 def prompt(prompt: str, on_cancel: callable, **default: str):
@@ -22,11 +32,43 @@ if __name__ == "__main__":
     prompt("This will replace your current bdsh configs, proceed?", lambda: exit(0))
 
     print_header("SETUP ENV")
-    if 'VIRTUAL_ENV' in os.environ:
-        print("You are in a virtual environment")
-    else:
-        print("You are not in a virtual environment")
 
+    if 'VIRTUAL_ENV' not in os.environ:
+        prompt("This will install bdsh-required Python packages to your current env. Continue?", lambda: exit(0))
+
+    print("Upgrading pip...")
+    try:
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to upgrade pip: {e}")
+
+    install_package("requests")
+    import requests
+
+    pyreqs = "pyreqs"
+
+    print(f"\nDownloading package list...")
+
+    res = requests.get(
+        "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt")
+
+    if not res.ok:
+        print("Failed to fetch package list, please download it manually from the bdsh repo: https://github.com/badtechnologies/bdsh")
+        exit(0)
+
+    with open(pyreqs, 'wb') as f:
+        f.write(res.content)
+    print(f"Downloaded package list.")
+
+    print("\nInstalling packages...")
+    with open(pyreqs, 'r') as f:
+        for line in f.readlines():
+            install_package(line)
+
+    print("\nCleaning up...")
+    os.remove(pyreqs)
+    from paramiko import RSAKey
 
     print_header("INIT BDSH")
     print(bdsh.Shell(None, None).header)
@@ -116,7 +158,8 @@ if __name__ == "__main__":
 \tRequested Bin:\t{meta['bin']}
 \tMetadata:\t{meta}""")
 
-                prompt("Try again?", lambda: globals().update(install_packages=False))
+                prompt("Try again?", lambda: globals().update(
+                    install_packages=False))
             else:
                 break
 
@@ -140,6 +183,20 @@ if __name__ == "__main__":
     key = RSAKey.generate(bits=2048)
     key.write_private_key_file('bdsh/cfg/badbandssh_rsa_key')
     print("Stored BadBandSSH private key")
+
+    print_header("CREATE LAUNCHER SCRIPTS")
+    binpath = os.path.abspath('bdsh.py')
+
+    if sys.platform.startswith("win"):
+        with open("bdsh.bat", "w") as f:
+            f.write(f'@echo off\n{sys.executable} {binpath} %*')
+        print("Created WINDOWS launcher script")
+
+    else:
+        with open("bdsh", "w") as f:
+            f.write(f'#!/bin/bash\n{sys.executable} {binpath} "$@')
+        os.chmod("bdsh", 0o755)
+        print("Created UNIX launcher script")
 
     print_header("CLEANING UP")
 
