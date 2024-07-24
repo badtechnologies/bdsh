@@ -185,17 +185,20 @@ if __name__ == "__main__":
     print("Stored BadBandSSH private key")
 
     print_header("CREATE LAUNCHER SCRIPTS")
+    if not os.path.exists("bin"):
+        os.mkdir("bin")
+    
     binpath = os.path.abspath('bdsh.py')
 
     if sys.platform.startswith("win"):
-        with open("bdsh.bat", "w") as f:
+        with open(os.path.join("bin", "bdsh.bat"), "w") as f:
             f.write(f'@echo off\n{sys.executable} {binpath} %*')
         print("Created WINDOWS launcher script")
 
     else:
-        with open("bdsh", "w") as f:
-            f.write(f'#!/bin/bash\n{sys.executable} {binpath} "$@')
-        os.chmod("bdsh", 0o755)
+        with open(os.path.join("bin", "bdsh"), "w") as f:
+            f.write(f'#!/bin/bash\n{sys.executable} {binpath} "$@"')
+        os.chmod(os.path.join("bin", "bdsh"), 0o755)
         print("Created UNIX launcher script")
 
     print_header("CLEANING UP")
