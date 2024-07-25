@@ -39,7 +39,9 @@ def print_header(header: str):
 
 
 if __name__ == "__main__":
-    prompt("This will replace your current bdsh configs, proceed?", lambda: exit(0))
+    print("BDSH INSTALLATION TOOL\n(c) Bad Technologies\n")
+    if os.path.exists(BDSH_ROOT):
+        prompt("This will replace your current bdsh configs, proceed?", lambda: exit(0))
 
     print_header("SETUP ENV")
 
@@ -225,6 +227,9 @@ if __name__ == "__main__":
             f.write(f'#!/bin/bash\n{sys.executable} {binpath} "$@"')
         os.chmod(os.path.join("bin", "bdsh"), 0o755)
         print("Created UNIX launcher script")
+
+    print(f"[!] Please add the following path to your PATH after installation completes:\n\t{os.path.abspath('bin')}")
+    getpass("Press ENTER to continue...")
 
     print_header("CLEANING UP")
 
