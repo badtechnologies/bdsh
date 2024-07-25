@@ -6,25 +6,27 @@ Read the docs at 🔗 [badtechnologies.github.io/bdsh](https://badtechnologies.g
 
 1. **Download the latest release**
 
-    Or, you can directly download `config.py` and `bdsh.py` from the [repo](https://github.com/badtechnologies/bdsh).
+    Or, you can directly download `install.py` from the [repo](https://github.com/badtechnologies/bdsh).
 
 > [!TIP]
-> The only files needed to run bdsh are `config.py` and `bdsh.py`.<br>
-> Running `config.py` generates, downloads, or installs everything else.
+> The only file needed to create a bdsh installation is `install.py`.<br>
+> Running `install.py` generates, downloads, or installs everything else.
 
 2. **Setup bdsh:**
 
     ```sh
-    python3 config.py
+    python3 install.py
     ```
 
     Follow the on-screen instructions.
 
-    Once the `/bdsh` directory and your configs are prepared, you can start bdsh with `bdsh.py` to launch the interactive shell.
+    Once the `/bdsh` directory and your configs are prepared, you can start bdsh with `bdsh` to launch the interactive shell.
 
 3. **Launch bdsh:**
 
     ```sh
-    python3 bdsh.py
+    bdsh
     ```
 
+> [!NOTE]
+> This may change depending on how you created your launcher scripts.

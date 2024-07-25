@@ -16,12 +16,16 @@
 
 1. **Download the latest release**
 
-    Or, you can directly download `config.py` and `bdsh.py` from the [repo](https://github.com/badtechnologies/bdsh).
+    Or, you can directly download `install.py` from the [repo](https://github.com/badtechnologies/bdsh).
+
+    > #### 💡 Tip
+    > The only file needed to create a bdsh installation is `install.py`.<br>
+    > Running `install.py` generates, downloads, or installs everything else.
 
 2. **Setup bdsh:**
 
     ```sh
-    python3 config.py
+    python3 install.py
     ```
 
     Follow the on-screen instructions.
@@ -34,5 +38,8 @@
 3. **Launch bdsh:**
 
     ```sh
-    python3 bdsh.py
+    bdsh
     ```
+
+    > #### ℹ️ Note
+    > This may change depending on how you created your launcher scripts.
