@@ -75,12 +75,13 @@ if __name__ == "__main__":
 
     print_header("SETUP ENV")
 
-    print_task("Upgrading environment package installer")
-    try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("OK")
-    except subprocess.CalledProcessError:
-        print("FAILED")
+    if install_type is not InstallType.SYSTEM:
+        print_task("Upgrading environment package installer")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print("OK")
+        except subprocess.CalledProcessError:
+            print("FAILED")
 
     print_task("Installing system HTTP client")
     install_package("requests")
