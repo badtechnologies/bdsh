@@ -1,5 +1,4 @@
 from getpass import getpass
-import bdsh
 import json
 import os
 import sys
@@ -98,6 +97,8 @@ if __name__ == "__main__":
             f.write(res.content)
 
         print("Downloaded bdsh source successfully")
+
+    import bdsh
 
     print_header("INIT BDSH")
 

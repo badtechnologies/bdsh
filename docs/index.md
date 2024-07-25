@@ -12,6 +12,18 @@
 - [BadOS Dynamic Shell (bdsh)](index.md)
 
 
+## Quick Install
+
+Run the following command:
+
+```sh
+curl -O https://raw.githubusercontent.com/badtechnologies/bdsh/main/install.py
+python3 install.py
+```
+
+After completing setup, bdsh should be good to go!
+
+
 ## Installation
 
 1. **Download the latest release**
