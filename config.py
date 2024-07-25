@@ -5,6 +5,17 @@ import os
 import sys
 import subprocess
 
+PYREQS_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt"
+GIT_URL = "https://github.com/badtechnologies/bdsh"
+BDSH_SRC_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/bdsh.py"
+BPL_URL = "https://raw.githubusercontent.com/badtechnologies/bpl/main/lib"
+
+PYREQS = "requirements.txt"
+BDSH_SRC = "bdsh.py"
+
+BDSH_DIRS = ['cfg', 'prf', 'exec']
+BDSH_ROOT = "bdsh"
+
 
 def install_package(package_name: str):
     package_name = package_name.strip()
@@ -46,68 +57,67 @@ if __name__ == "__main__":
     install_package("requests")
     import requests
 
-    pyreqs = "requirements.txt"
-    if os.path.exists(pyreqs):
+    if os.path.exists(PYREQS):
         print("Package list already download, skipping")
     else:
         print(f"\nDownloading package list...")
 
-        res = requests.get(
-            "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt")
+        res = requests.get(PYREQS_URL)
 
         if not res.ok:
-            print("Failed to fetch package list, please download it manually from the bdsh repo: https://github.com/badtechnologies/bdsh")
+            print(f"Failed to fetch package list, please download it manually from the bdsh repo: {GIT_URL}")
             exit(0)
 
-        with open(pyreqs, 'wb') as f:
+        with open(PYREQS, 'wb') as f:
             f.write(res.content)
         print(f"Downloaded package list.")
 
     print("\nInstalling packages...")
-    with open(pyreqs, 'r') as f:
+    with open(PYREQS, 'r') as f:
         for line in f.readlines():
             install_package(line)
 
     print("\nCleaning up...")
-    os.remove(pyreqs)
+    os.remove(PYREQS)
 
     # IMPORT STATEMENTS (AFTER INSTALLING PIP PACKAGES)
     from paramiko import RSAKey
 
     print_header("DOWNLOAD BDSH")
 
-    if os.path.exists("bdsh.py"):
+    if os.path.exists(BDSH_SRC):
         print("bdsh source already downloaded, skipping")
     else:
-        res = requests.get("https://raw.githubusercontent.com/badtechnologies/bdsh/main/bdsh.py")
+        res = requests.get(BDSH_SRC_URL)
 
         if not res.ok:
-            print("Failed to fetch package list, please download it manually from the bdsh repo: https://github.com/badtechnologies/bdsh")
+            print(f"Failed to fetch bdsh source, please download it manually from the bdsh repo: {GIT_URL}")
             exit(0)
 
-        with open("bdsh.py", 'wb') as f:
+        with open(BDSH_SRC, 'wb') as f:
             f.write(res.content)
 
         print("Downloaded bdsh source successfully")
 
     print_header("INIT BDSH")
-    print(bdsh.Shell(None, None).header)
-
-    dirs = ['cfg', 'prf', 'exec']
 
     try:
-        if not os.path.exists('bdsh'):
-            os.mkdir('bdsh')
+        if not os.path.exists(BDSH_ROOT):
+            os.mkdir(BDSH_ROOT)
 
-        for dir in dirs:
-            path = os.path.join('bdsh', dir)
+        for dir in BDSH_DIRS:
+            path = os.path.join(BDSH_ROOT, dir)
             if not os.path.exists(path):
                 os.mkdir(path)
     except Exception as e:
         print(f"Error initializing bdsh directory structure: {e}")
         exit(-1)
 
-    print("Populated /bdsh successfully")
+    print(f"Populated bdsh root ({BDSH_ROOT}/) successfully")
+
+    print("Starting virtual bdsh session")
+    virtsh = bdsh.Shell(sys.stdout, sys.stdin)
+    print(bdsh.Shell(None, None).header)
 
     print_header("CREATE USERS")
 
@@ -135,11 +145,11 @@ if __name__ == "__main__":
         if username is None:
             break
 
-    with open('bdsh/cfg/users.json', 'w') as f:
+    with open(f'{BDSH_ROOT}/cfg/users.json', 'w') as f:
         json.dump(users, f)
 
     for username in users.keys():
-        path = os.path.join('bdsh/prf', username)
+        path = os.path.join(f'{BDSH_ROOT}/prf', username)
         if not os.path.exists(path):
             os.mkdir(path)
 
@@ -147,43 +157,37 @@ if __name__ == "__main__":
 
     print_header("INSTALL BPM")
 
-    BPI_URL = "https://raw.githubusercontent.com/badtechnologies/bpl/main/lib"
-
     install_packages = True
     while install_packages:
-        res = requests.get(f'{BPI_URL}/bpm/bpl.json')
+        res = requests.get(f'{BPL_URL}/bpm/bpl.json')
 
         if not res.ok:
             print(f"""Something went wrong while fetching bpm from bpl, more information below:
 \tError:\t\tHTTP {res.status_code} {res.reason}
-\tLibrary:\t{BPI_URL}
+\tLibrary:\t{BPL_URL}
 \tResponse:\t{res.content.decode()}""")
 
-            prompt("Try again?", lambda: globals().update(
-                install_packages=False))
+            prompt("Try again?", lambda: globals().update(install_packages=False))
         else:
             break
 
     if install_packages:
         meta = res.json()
         print(f"Installing bpm-{meta['version']} ({meta['name']})")
-        res = requests.get(f'{BPI_URL}/bpm/{meta["bin"]}')
+        res = requests.get(f'{BPL_URL}/bpm/{meta["bin"]}')
 
         while install_packages:
             if not res.ok:
                 print(f"""Something went wrong while downloading bpm binaries, more information below:
 \tError:\t\tHTTP {res.status_code} {res.reason}
-\tLibrary:\t{BPI_URL}
+\tLibrary:\t{BPL_URL}
 \tResponse:\t{res.content.decode()}
 \tRequested Bin:\t{meta['bin']}
 \tMetadata:\t{meta}""")
 
-                prompt("Try again?", lambda: globals().update(
-                    install_packages=False))
+                prompt("Try again?", lambda: globals().update(install_packages=False))
             else:
                 break
-
-    virtsh = bdsh.Shell(sys.stdout, sys.stdin)
 
     if install_packages:
         with open(virtsh.get_path('exec', 'bpm'), 'wb') as f:
@@ -201,14 +205,14 @@ if __name__ == "__main__":
     print_header("SETUP BADBANDSSH")
 
     key = RSAKey.generate(bits=2048)
-    key.write_private_key_file('bdsh/cfg/badbandssh_rsa_key')
+    key.write_private_key_file(virtsh.get_path('cfg', 'badbandssh_rsa_key'))
     print("Stored BadBandSSH private key")
 
     print_header("CREATE LAUNCHER SCRIPTS")
     if not os.path.exists("bin"):
         os.mkdir("bin")
-    
-    binpath = os.path.abspath('bdsh.py')
+
+    binpath = os.path.abspath(BDSH_SRC)
 
     if sys.platform.startswith("win"):
         with open(os.path.join("bin", "bdsh.bat"), "w") as f:
