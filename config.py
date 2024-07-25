@@ -46,20 +46,22 @@ if __name__ == "__main__":
     install_package("requests")
     import requests
 
-    pyreqs = "pyreqs"
+    pyreqs = "requirements.txt"
+    if os.path.exists(pyreqs):
+        print("Package list already download, skipping")
+    else:
+        print(f"\nDownloading package list...")
 
-    print(f"\nDownloading package list...")
+        res = requests.get(
+            "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt")
 
-    res = requests.get(
-        "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt")
+        if not res.ok:
+            print("Failed to fetch package list, please download it manually from the bdsh repo: https://github.com/badtechnologies/bdsh")
+            exit(0)
 
-    if not res.ok:
-        print("Failed to fetch package list, please download it manually from the bdsh repo: https://github.com/badtechnologies/bdsh")
-        exit(0)
-
-    with open(pyreqs, 'wb') as f:
-        f.write(res.content)
-    print(f"Downloaded package list.")
+        with open(pyreqs, 'wb') as f:
+            f.write(res.content)
+        print(f"Downloaded package list.")
 
     print("\nInstalling packages...")
     with open(pyreqs, 'r') as f:
@@ -68,7 +70,25 @@ if __name__ == "__main__":
 
     print("\nCleaning up...")
     os.remove(pyreqs)
+
+    # IMPORT STATEMENTS (AFTER INSTALLING PIP PACKAGES)
     from paramiko import RSAKey
+
+    print_header("DOWNLOAD BDSH")
+
+    if os.path.exists("bdsh.py"):
+        print("bdsh source already downloaded, skipping")
+    else:
+        res = requests.get("https://raw.githubusercontent.com/badtechnologies/bdsh/main/bdsh.py")
+
+        if not res.ok:
+            print("Failed to fetch package list, please download it manually from the bdsh repo: https://github.com/badtechnologies/bdsh")
+            exit(0)
+
+        with open("bdsh.py", 'wb') as f:
+            f.write(res.content)
+
+        print("Downloaded bdsh source successfully")
 
     print_header("INIT BDSH")
     print(bdsh.Shell(None, None).header)
