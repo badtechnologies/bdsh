@@ -83,7 +83,7 @@ class Shell:
         if line == "":
             return
 
-        args = line.lower().split(' ')
+        args = line.split(' ')
 
         if args[0] in self.definitions:
             self.run_line(self.definitions[args[0]] + ' '.join(args[1:]))
