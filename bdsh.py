@@ -34,7 +34,11 @@ class Shell:
             "peek": self.cmd_peek,
         }
 
-        self.definitions = {}
+        self.definitions = {
+            "ls": "ld",
+            "dir": "ld",
+            "cd": "go"
+        }
 
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
@@ -87,7 +91,7 @@ class Shell:
         args = line.split(' ')
 
         if args[0] in self.definitions:
-            self.run_line(self.definitions[args[0]] + ' '.join(args[1:]))
+            self.run_line(self.definitions[args[0]] + " " + ' '.join(args[1:]))
         elif args[0] in self.commands:
             try:
                 self.commands[args[0]](args)
