@@ -10,7 +10,7 @@ root_dir = os.path.abspath('bdsh')
 
 
 class Shell:
-    def __init__(self, stdout: TextIO, stdin: TextIO, **is_ssh: bool):
+    def __init__(self, stdout: TextIO | None, stdin: TextIO | None, **is_ssh: bool):
         self.stdout = stdout
         self.stdin = stdin
         self.print = lambda s: self.stdout.write(s)
@@ -45,9 +45,9 @@ class Shell:
 
     def cmd_ld(self, args):
         try:
-            dir = self.get_path(args[1]) if len(args) > 1 else self.path
-            items = os.listdir(dir)
-            self.print('\t'.join([item + '/' if os.path.isdir(os.path.join(dir, item)) else item for item in items]))
+            path = self.get_path(args[1]) if len(args) > 1 else self.path
+            items = os.listdir(path)
+            self.print('\t'.join([item + '/' if os.path.isdir(os.path.join(path, item)) else item for item in items]))
         except FileNotFoundError:
             raise FileNotFoundError(f"{args[1]}: does not exist")
 
@@ -97,21 +97,22 @@ class Shell:
                 self.commands[args[0]](args)
             except Exception as e:
                 self.print(f"{args[0]}: {e}")
-        elif os.path.exists(bin := self.get_path("exec", args[0])):
+        elif os.path.exists(binary := self.get_path("exec", args[0])):
             if self.is_ssh:
                 self.print(f"{args[0]} is unsupported over SSH")
                 return
 
-            subprocess.run([sys.executable, bin] + args[1:], stdout=self.stdout, stderr=subprocess.STDOUT, stdin=self.stdin, text=True, env=self.env)
+            subprocess.run([sys.executable, binary] + args[1:], stdout=self.stdout, stderr=subprocess.STDOUT, stdin=self.stdin, text=True, env=self.env)
         else:
             self.print(f"Invalid command: {args[0]}")
 
     def get_prompt(self):
         return f"{nl}{self.cwd()}$ "
     
-    def get_path(self, *paths: str):
-        dir = os.path.abspath(os.path.join(root_dir, *paths))
-        return dir if dir.startswith(root_dir) else root_dir
+    @staticmethod
+    def get_path(*paths: str):
+        path = os.path.abspath(os.path.join(root_dir, *paths))
+        return path if path.startswith(root_dir) else root_dir
 
     def start(self):
         os.chdir(self.get_path())

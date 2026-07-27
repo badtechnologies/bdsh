@@ -4,6 +4,7 @@ import os
 import sys
 import subprocess
 from enum import Enum
+from typing import Callable
 
 PYREQS_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt"
 GIT_URL = "https://github.com/badtechnologies/bdsh"
@@ -21,9 +22,10 @@ class InstallType(Enum):
     STANDARD = "std"    # standard bdsh installation
     SYSTEM = "sys"      # system-wide bdsh installation; made for BadOS Shell System
 
+    @staticmethod
     def display():
-        for install_type in InstallType:
-            print(f"\t> {install_type.value} ({install_type.name})")
+        for t in InstallType:
+            print(f"\t> {t.value} ({t.name})")
 
 
 # default args
@@ -40,15 +42,16 @@ def install_package(package_name: str):
         exit(0x81)
 
 
-def prompt(prompt: str, on_cancel: callable, **default: str):
-    while (s := input((prompt + " [y/n] ") or default).lower()) not in {'y', 'n'}:
+def prompt(query: str, on_cancel: Callable[[], None], **default: str):
+    response = input((query + " [y/n] ") or default).lower()
+    while response not in {'y', 'n'}:
         pass
-    if s == 'n':
+    if response == 'n':
         on_cancel()
 
 
 def print_header(header: str):
-    print('\n'+(f" {header} ").center(50, '='))
+    print('\n' + f" {header} ".center(50, '='))
 
 
 def print_task(task: str):
