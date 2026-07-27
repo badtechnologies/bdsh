@@ -8,7 +8,7 @@ from enum import Enum
 PYREQS_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt"
 GIT_URL = "https://github.com/badtechnologies/bdsh"
 BDSH_SRC_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/bdsh.py"
-BPL_URL = "https://raw.githubusercontent.com/badtechnologies/bpl/main/lib"
+BPL_URL = "https://raw.githubusercontent.com/badtechnologies/bpl/lib"
 
 PYREQS = "requirements.txt"
 BDSH_SRC = "bdsh.py"
