@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bdsh"
+authors = [
+    { name = "Logan Dhillon", email = "dev@logandhillon.com" }
+]
+version = "0.1.0"
+description = "BadOS Dynamic Shell"
+requires-python = ">=3.10"
+readme = "README.md"
+
+[project.scripts]
+bdsh = "bdsh.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

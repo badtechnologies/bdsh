@@ -5,8 +5,11 @@ import sys
 
 from bdsh.shell import Shell
 
-if __name__ == "__main__":
+def main():
     _cwd = os.getcwd()
     bdsh = Shell(sys.stdout, sys.stdin)
     bdsh.start()
     os.chdir(_cwd)
+
+if __name__ == "__main__":
+    main()
