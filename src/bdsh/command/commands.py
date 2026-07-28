@@ -16,9 +16,9 @@ class HelpCommand(Command):
                 msg = subcommand.help()
 
                 if not msg:
-                    self.shell.print(f"help: {args[1]} does not have a help message")
+                    self.shell.print(f"help: {args[1]} does not have a manual or help message")
                 else:
-                    self.shell.print(msg)
+                    self.shell.print(f"{args[1]}: {msg}")
             else:
                 raise TypeError(f"{args[1]} is not a valid command")
         else:
@@ -38,7 +38,7 @@ class ListDirectoryCommand(Command):
             raise FileNotFoundError(f"{args[1]}: does not exist")
 
     def help(self) -> str:
-        pass
+        return "lists the contents of a directory"
 
 
 class DefineCommand(Command):
@@ -60,7 +60,7 @@ class DefineCommand(Command):
         self.shell.print(f"defined '{args[1]}' to run '{definition}'")
 
     def help(self) -> str:
-        pass
+        return "defines a 'definition', which maps a string to a command"
 
 
 class ThrowCommand(Command):
@@ -68,7 +68,7 @@ class ThrowCommand(Command):
         raise Exception(' '.join(args[1:]))
 
     def help(self) -> str:
-        pass
+        return "throws an exception"
 
 
 class GoCommand(Command):
@@ -80,7 +80,7 @@ class GoCommand(Command):
             raise FileNotFoundError(f"{args[1]}: no such file or folder")
 
     def help(self) -> str:
-        pass
+        return "goes to a directory"
 
 
 class PeekCommand(Command):
@@ -92,7 +92,7 @@ class PeekCommand(Command):
             raise FileNotFoundError(f"{args[1]}: no such file")
 
     def help(self) -> str:
-        pass
+        return "peeks the contents of a file"
 
 
 def register_commands(shell: Shell) -> Dict[str, Command]:
