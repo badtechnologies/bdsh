@@ -11,7 +11,7 @@ dynamic = ["version"]
 description = "BadOS Dynamic Shell"
 requires-python = ">=3.10"
 readme = "README.md"
-keywords = ["shell", "terminal", "cli", "command-line", "badOS", "BadOS", "operating-system"]
+keywords = ["shell", "terminal", "cli", "command-line", "BadOS", "operating-system"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
