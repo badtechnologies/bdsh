@@ -15,7 +15,7 @@ keywords = ["shell", "terminal", "cli", "command-line", "badOS", "BadOS", "opera
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: Other/Proprietary License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
@@ -25,6 +25,7 @@ classifiers = [
     "Topic :: System :: Shells",
     "Topic :: Terminals"
 ]
+license = { file = "LICENSE" }
 
 [project.urls]
 Homepage = "https://badtechnologies.github.io/bdsh"
@@ -39,4 +40,4 @@ bdsh = "bdsh.__main__:main"
 where = ["src"]
 
 [tool.setuptools.dynamic]
-version = {attr = "bdsh.__version__.__version__"}
+version = { attr = "bdsh.__version__.__version__" }
