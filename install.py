@@ -12,7 +12,7 @@ BDSH_SRC_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/bdsh
 BPL_URL = "https://raw.githubusercontent.com/badtechnologies/bpl/lib"
 
 PYREQS = "requirements.txt"
-BDSH_SRC = "bdsh.py"
+BDSH_SRC = "src/bdsh/bdsh.py"
 
 BDSH_DIRS = ['cfg', 'prf', 'exec']
 BDSH_ROOT = "bdsh"
