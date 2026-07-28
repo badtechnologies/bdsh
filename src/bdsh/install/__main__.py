@@ -10,7 +10,7 @@ from bdsh.install.util import prompt, print_header, print_task, install_package
 PYREQS_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt"
 GIT_URL = "https://github.com/badtechnologies/bdsh"
 BDSH_SRC_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/bdsh.py"
-BPL_URL = "https://raw.githubusercontent.com/badtechnologies/bpl/lib"
+BPL_URL = "https://raw.githubusercontent.com/badtechnologies/bpl/main/lib"
 
 PYREQS = "requirements.txt"
 BDSH_SRC = "src/bdsh/bdsh.py"
@@ -36,7 +36,7 @@ def main():
                 InstallType.display()
                 exit()
 
-    print(f"BDSH INSTALLATION TOOL, {install_type.name} INSTALL\n(c) Bad Technologies\n")
+    print(f"BDSH INSTALLATION TOOL, {install_type.name} INSTALL\n(c) Bad Technologies. All rights reserved.\n")
     if install_type is not InstallType.SYSTEM and os.path.exists(BDSH_ROOT):
         prompt("This will replace your current bdsh configs, proceed?", lambda: exit(0))
 
@@ -55,56 +55,13 @@ def main():
     install_package("requests")
     import requests
 
-    if os.path.exists(PYREQS):
-        print("Package list already download, skipping")
-    else:
-        print_task(f"Downloading package list")
-
-        res = requests.get(PYREQS_URL)
-
-        if not res.ok:
-            print("FAILED")
-            if install_type is not InstallType.SYSTEM:
-                print(f"Please download 'requirements.txt' manually from the bdsh repo: {GIT_URL}")
-            exit(0x82)
-
-        with open(PYREQS, 'wb') as f:
-            f.write(res.content)
-        print(f"OK")
-
-    with open(PYREQS, 'r') as f:
-        lines = f.readlines()
-        pkgs = len(lines)
-        for i, pkg in enumerate(lines, 1):
-            print_task(f"Installing system packages ({i}/{pkgs})")
-            install_package(pkg)
-
-    print("\nCleaning up")
-    os.remove(PYREQS)
-
-    # IMPORT STATEMENTS (AFTER INSTALLING PIP PACKAGES)
+    print_task("Installing security manager")
+    install_package("requests")
     from paramiko import RSAKey
 
-    print_header("DOWNLOAD BDSH")
-
-    if os.path.exists(BDSH_SRC):
-        print("bdsh source already downloaded, skipping")
-    else:
-        print_task("Downloading bdsh source")
-        res = requests.get(BDSH_SRC_URL)
-
-        if not res.ok:
-            print("FAILED")
-            if install_type is not InstallType.SYSTEM:
-                print(f"Please download 'bdsh.py' manually from the bdsh repo: {GIT_URL}")
-            exit(0x83)
-
-        with open(BDSH_SRC, 'wb') as f:
-            f.write(res.content)
-
-        print("OK")
-
-    import bdsh
+    print_task("Installing BadOS Dynamic Shell")
+    install_package("bdsh")
+    from bdsh.shell import Shell
 
     print_header("INIT BDSH")
 
@@ -127,8 +84,8 @@ def main():
         print(f"Populated bdsh root ({BDSH_ROOT}/) successfully")
 
     print("Starting virtual bdsh session")
-    virtsh = bdsh.Shell(sys.stdout, sys.stdin)
-    print(bdsh.Shell(None, None).header)
+    virtsh = Shell(sys.stdout, sys.stdin)
+    print(Shell(None, None).header)
 
     print_header("CREATE USERS")
 
@@ -169,6 +126,10 @@ def main():
     print_header("INSTALL BPM")
 
     install_packages = True
+    def stop_install():
+        nonlocal install_packages
+        install_packages = False
+
     while install_packages:
         print_task("Fetching bpm from bpl")
         res = requests.get(f'{BPL_URL}/bpm/bpl.json')
@@ -179,7 +140,7 @@ def main():
 \tLibrary:\t{BPL_URL}
 \tResponse:\t{res.content.decode()}""")
 
-            prompt("Try again?", lambda: globals().update(install_packages=False))
+            prompt("Try again?", stop_install)
         else:
             print("OK")
             break
@@ -198,7 +159,7 @@ def main():
 \tRequested Bin:\t{meta['bin']}
 \tMetadata:\t{meta}""")
 
-                prompt("Try again?", lambda: globals().update(install_packages=False))
+                prompt("Try again?", stop_install)
             else:
                 break
 
@@ -233,9 +194,9 @@ def main():
         print("Created WINDOWS launcher")
 
     else:
-        with open(os.path.join("bin", "../../../bdsh"), "w") as f:
+        with open(os.path.join("bin", "bdsh"), "w") as f:
             f.write(f'#!/bin/bash\n{sys.executable} {binpath} "$@"')
-        os.chmod(os.path.join("bin", "../../../bdsh"), 0o755)
+        os.chmod(os.path.join("bin", "bdsh"), 0o755)
         if install_type is not InstallType.SYSTEM:
             print("Created UNIX launcher")
         else:
