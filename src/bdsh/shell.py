@@ -33,6 +33,8 @@ class Shell:
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
 
     def run_line(self, line: str):
+        line = line.strip() # dont want to process invisible characters
+
         if line == "":
             return
 
