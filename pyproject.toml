@@ -7,7 +7,7 @@ name = "bdsh"
 authors = [
     { name = "Logan Dhillon", email = "dev@logandhillon.com" }
 ]
-version = "0.1.0"
+dynamic = ["version"]
 description = "BadOS Dynamic Shell"
 requires-python = ">=3.10"
 readme = "README.md"
@@ -17,3 +17,6 @@ bdsh = "bdsh.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "bdsh.__version__.__version__"}

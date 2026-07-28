@@ -3,7 +3,7 @@ import subprocess
 import sys
 from typing import TextIO
 
-from bdsh import NL
+from bdsh import NL, __version__
 from bdsh.command.commands import register_commands
 
 ROOT_DIR = os.path.abspath('bdsh')
@@ -19,7 +19,7 @@ class Shell:
         self.path = self.get_path()
         self.cwd = lambda: os.path.relpath(self.path, ROOT_DIR).replace('.', '/', 1)
 
-        self.header = f"BadOS Dynamic Shell (v0.1) {'(BadBandSSH)' if is_ssh else ''}{NL}(c) Bad Technologies. All rights reserved.{NL}"
+        self.header = f"BadOS Dynamic Shell (v{__version__}) {'(BadBandSSH)' if is_ssh else ''}{NL}(c) Bad Technologies. All rights reserved.{NL}"
 
         self.commands = register_commands(self)
 
