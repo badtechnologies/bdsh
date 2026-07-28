@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from bdsh.shell import Shell
 
 
-class ICommand(ABC):
+class Command(ABC):
     def __init__(self, shell: Shell):
         self.shell = shell
 
@@ -19,7 +19,7 @@ class ICommand(ABC):
         pass
 
 
-class Command(ICommand):
+class AnonymousCommand(Command):
     def __init__(self, shell: Shell, execute: Callable[[List[str]], Any], help_msg: str):
         super().__init__(shell)
         self.help_msg = help_msg

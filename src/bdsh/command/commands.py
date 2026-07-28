@@ -1,22 +1,34 @@
 import os
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Dict
 
 from bdsh import NL
-from bdsh.command import ICommand, Command
+from bdsh.command import Command, AnonymousCommand
 
 if TYPE_CHECKING:
     from bdsh.shell import Shell
 
 
-class HelpCommand(ICommand):
+class HelpCommand(Command):
     def execute(self, args: List[str]):
-        self.shell.print(f"bdsh commands:{NL}" + '\t'.join(self.shell.commands.keys()))
+        if len(args) > 1:
+            subcommand = self.shell.commands.get(args[1])
+            if isinstance(subcommand, Command):
+                msg = subcommand.help()
+
+                if not msg:
+                    self.shell.print(f"help: {args[1]} does not have a help message")
+                else:
+                    self.shell.print(msg)
+            else:
+                raise TypeError(f"{args[1]} is not a valid command")
+        else:
+            self.shell.print(f"bdsh commands:{NL}" + '\t'.join(self.shell.commands.keys()))
 
     def help(self) -> str:
-        pass
+        return "lists all commands, or displays the help message for individual commands"
 
 
-class ListDirectoryCommand(ICommand):
+class ListDirectoryCommand(Command):
     def execute(self, args: List[str]):
         try:
             path = self.shell.get_path(args[1]) if len(args) > 1 else self.shell.path
@@ -29,7 +41,7 @@ class ListDirectoryCommand(ICommand):
         pass
 
 
-class DefineCommand(ICommand):
+class DefineCommand(Command):
     def execute(self, args: List[str]):
         if '-h' in args or '--help' in args:
             self.shell.print(
@@ -51,7 +63,7 @@ class DefineCommand(ICommand):
         pass
 
 
-class ThrowCommand(ICommand):
+class ThrowCommand(Command):
     def execute(self, args: List[str]):
         raise Exception(' '.join(args[1:]))
 
@@ -59,7 +71,7 @@ class ThrowCommand(ICommand):
         pass
 
 
-class GoCommand(ICommand):
+class GoCommand(Command):
     def execute(self, args: List[str]):
         if os.path.exists(path := self.shell.get_path(args[1])):
             self.shell.path = path
@@ -71,7 +83,7 @@ class GoCommand(ICommand):
         pass
 
 
-class PeekCommand(ICommand):
+class PeekCommand(Command):
     def execute(self, args: List[str]):
         if os.path.isfile(path := os.path.join(self.shell.path, args[1])):
             with open(path, 'r') as f:
@@ -83,16 +95,16 @@ class PeekCommand(ICommand):
         pass
 
 
-def register_commands(shell: Shell):
+def register_commands(shell: Shell) -> Dict[str, Command]:
     return {
-        "exit": Command(shell, lambda _: exit(0), ""),
+        "exit": AnonymousCommand(shell, lambda _: exit(0), ""),
         "help": HelpCommand(shell),
-        "echo": Command(shell, lambda args: shell.print(' '.join(args[1:])), ""),
+        "echo": AnonymousCommand(shell, lambda args: shell.print(' '.join(args[1:])), ""),
         "ld": ListDirectoryCommand(shell),
-        "ver": Command(shell, lambda _: shell.print(shell.header), ""),
+        "ver": AnonymousCommand(shell, lambda _: shell.print(shell.header), ""),
         "def": DefineCommand(shell),
         "throw": ThrowCommand(shell),
-        "cwd": Command(shell, lambda _: shell.print(shell.cwd()), ""),
+        "cwd": AnonymousCommand(shell, lambda _: shell.print(shell.cwd()), ""),
         "go": GoCommand(shell),
         "peek": PeekCommand(shell),
     }
