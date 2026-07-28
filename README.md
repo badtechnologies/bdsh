@@ -7,8 +7,8 @@ Read the docs at 🔗 [badtechnologies.github.io/bdsh](https://badtechnologies.g
 Run the following command:
 
 ```sh
-curl -O https://raw.githubusercontent.com/badtechnologies/bdsh/main/install.py
-python3 install.py
+python3 -m pip install bdsh
+python3 -m bdsh.install
 ```
 
 After completing setup, bdsh should be good to go!
@@ -18,16 +18,12 @@ After completing setup, bdsh should be good to go!
 
 1. **Download the latest release**
 
-    Or, you can directly download `install.py` from the [repo](https://github.com/badtechnologies/bdsh).
-
-> [!TIP]
-> The only file needed to create a bdsh installation is `install.py`.<br>
-> Running `install.py` generates, downloads, or installs everything else.
+    Or, you can directly download the `bdsh` module from PyPI.
 
 2. **Setup bdsh:**
 
     ```sh
-    python3 install.py
+    python3 -m bdsh.install
     ```
 
     Follow the on-screen instructions.

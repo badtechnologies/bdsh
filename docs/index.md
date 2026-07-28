@@ -1,5 +1,3 @@
-
-
 # BadOS Dynamic Shell (bdsh)
 
 ## Table of Contents
@@ -11,41 +9,33 @@
 - [System File Structure](file-structure.md)
 - [BadOS Dynamic Shell (bdsh)](index.md)
 
-
 ## Quick Install
 
 Run the following command:
 
 ```sh
-curl -O https://raw.githubusercontent.com/badtechnologies/bdsh/main/install.py
-python3 install.py
+python3 -m pip install bdsh
+python3 -m bdsh.install
 ```
 
 After completing setup, bdsh should be good to go!
 
-
-## Installation
+## Installation (Manual)
 
 1. **Download the latest release**
 
-    Or, you can directly download `install.py` from the [repo](https://github.com/badtechnologies/bdsh).
-
-    > #### 💡 Tip
-    > The only file needed to create a bdsh installation is `install.py`.<br>
-    > Running `install.py` generates, downloads, or installs everything else.
+   Or, you can directly download the `bdsh` module from PyPI.
 
 2. **Setup bdsh:**
 
     ```sh
-    python3 install.py
+    python3 -m bdsh.install
     ```
 
-    Follow the on-screen instructions.
+   Follow the on-screen instructions.
 
-    > #### ℹ️ Note
-    > At least ONE user must exist for bdsh to function
-
-    Once the `/bdsh` directory and your configs are prepared, you can start bdsh with `bdsh.py` to launch the interactive shell.
+   Once the `/bdsh` directory and your configs are prepared, you can start bdsh with `bdsh` to launch the interactive
+   shell.
 
 3. **Launch bdsh:**
 
@@ -53,5 +43,5 @@ After completing setup, bdsh should be good to go!
     bdsh
     ```
 
-    > #### ℹ️ Note
-    > This may change depending on how you created your launcher scripts.
+   > #### ℹ️ Note
+   > This may change depending on how you created your launcher scripts.
