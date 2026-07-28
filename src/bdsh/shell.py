@@ -5,8 +5,8 @@ from typing import TextIO
 
 from bdsh.command import Command
 
-nl = '\r\n'
-root_dir = os.path.abspath('bdsh')
+NL = '\r\n'
+ROOT_DIR = os.path.abspath('bdsh')
 
 
 class Shell:
@@ -17,19 +17,19 @@ class Shell:
         self.readchar = lambda: self.stdin.read(1)
         self.is_ssh = is_ssh
         self.path = self.get_path()
-        self.cwd = lambda: os.path.relpath(self.path, root_dir).replace('.', '/', 1)
+        self.cwd = lambda: os.path.relpath(self.path, ROOT_DIR).replace('.', '/', 1)
 
-        self.header = f"BadOS Dynamic Shell (v0.1) {'(BadBandSSH)' if is_ssh else ''}{nl}(c) Bad Technologies. All rights reserved.{nl}"
+        self.header = f"BadOS Dynamic Shell (v0.1) {'(BadBandSSH)' if is_ssh else ''}{NL}(c) Bad Technologies. All rights reserved.{NL}"
 
         self.commands = {
-            "exit": Command(lambda _: exit(0), ""),
-            "help": Command(lambda _: self.print(f"bdsh commands:{nl}" + '\t'.join(self.commands.keys())), ""),
-            "echo": Command(lambda args: self.print(' '.join(args[1:])), ""),
+            "exit": Command(lambda _, s: exit(0), ""),
+            "help": Command(lambda _, s: self.print(f"bdsh commands:{NL}" + '\t'.join(self.commands.keys())), ""),
+            "echo": Command(lambda args, s: self.print(' '.join(args[1:])), ""),
             "ld": Command(self.cmd_ld, ""),
-            "ver": Command(lambda _: self.print(self.header), ""),
+            "ver": Command(lambda _, s: self.print(self.header), ""),
             "def": Command(self.cmd_def, ""),
             "throw": Command(self.cmd_throw, ""),
-            "cwd": Command(lambda _: self.print(self.cwd()), ""),
+            "cwd": Command(lambda _, s: self.print(self.cwd()), ""),
             "go": Command(self.cmd_go, ""),
             "peek": Command(self.cmd_peek, ""),
         }
@@ -43,7 +43,7 @@ class Shell:
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
 
-    def cmd_ld(self, args):
+    def cmd_ld(self, args, shell):
         try:
             path = self.get_path(args[1]) if len(args) > 1 else self.path
             items = os.listdir(path)
@@ -51,10 +51,10 @@ class Shell:
         except FileNotFoundError:
             raise FileNotFoundError(f"{args[1]}: does not exist")
 
-    def cmd_def(self, args):
+    def cmd_def(self, args, shell):
         if '-h' in args or '--help' in args:
             self.print(
-                f"usage: def <keyword> <definition>{nl}binds <keyword> to <definition>{nl}executing <keyword> will execute <definition>")
+                f"usage: def <keyword> <definition>{NL}binds <keyword> to <definition>{NL}executing <keyword> will execute <definition>")
             return
 
         if len(args) < 3:
@@ -68,17 +68,17 @@ class Shell:
         self.definitions[args[1]] = definition
         self.print(f"defined '{args[1]}' to run '{definition}'")
 
-    def cmd_throw(self, args):
+    def cmd_throw(self, args, shell):
         raise Exception(' '.join(args[1:]))
 
-    def cmd_go(self, args):
+    def cmd_go(self, args, shell):
         if os.path.exists(path := self.get_path(args[1])):
             self.path = path
             os.chdir(path)
         else:
             raise FileNotFoundError(f"{args[1]}: no such file or folder")
 
-    def cmd_peek(self, args):
+    def cmd_peek(self, args, shell):
         if os.path.isfile(path := os.path.join(self.path, args[1])):
             with open(path, 'r') as f:
                 self.print(f.read())
@@ -109,19 +109,19 @@ class Shell:
             self.print(f"Invalid command: {args[0]}")
 
     def get_prompt(self):
-        return f"{nl}{self.cwd()}$ "
+        return f"{NL}{self.cwd()}$ "
 
     @staticmethod
     def get_path(*paths: str):
-        path = os.path.abspath(os.path.join(root_dir, *paths))
-        return path if path.startswith(root_dir) else root_dir
+        path = os.path.abspath(os.path.join(ROOT_DIR, *paths))
+        return path if path.startswith(ROOT_DIR) else ROOT_DIR
 
     def start(self):
         os.chdir(self.get_path())
         self.run_line("ver")
 
         if not os.path.exists(self.get_path()):
-            self.print(f"bdsh: bdsh directory does not exist{nl}")
+            self.print(f"bdsh: bdsh directory does not exist{NL}")
             exit(1)
 
         self.print(self.get_prompt())
@@ -159,5 +159,5 @@ class Shell:
 
             except Exception as e:
                 buffer.clear()
-                self.print(f"bdsh: unhandled exception: {e}{nl}{self.get_prompt()}")
+                self.print(f"bdsh: unhandled exception: {e}{NL}{self.get_prompt()}")
                 continue
