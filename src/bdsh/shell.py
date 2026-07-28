@@ -1,8 +1,6 @@
-# BadOS Dynamic Shell (bdsh)
-
-import sys
 import os
 import subprocess
+import sys
 from typing import TextIO
 
 nl = '\r\n'
@@ -23,7 +21,7 @@ class Shell:
 
         self.commands = {
             "exit": lambda _: exit(0),
-            "help": lambda _: self.print(f"bdsh commands:{nl}" +'\t'.join(self.commands.keys())),
+            "help": lambda _: self.print(f"bdsh commands:{nl}" + '\t'.join(self.commands.keys())),
             "echo": lambda args: self.print(' '.join(args[1:])),
             "ld": self.cmd_ld,
             "ver": lambda _: self.print(self.header),
@@ -53,9 +51,10 @@ class Shell:
 
     def cmd_def(self, args):
         if '-h' in args or '--help' in args:
-            self.print(f"usage: def <keyword> <definition>{nl}binds <keyword> to <definition>{nl}executing <keyword> will execute <definition>")
+            self.print(
+                f"usage: def <keyword> <definition>{nl}binds <keyword> to <definition>{nl}executing <keyword> will execute <definition>")
             return
-        
+
         if len(args) < 3:
             raise ValueError("missing params (at least 3)")
 
@@ -69,14 +68,14 @@ class Shell:
 
     def cmd_throw(self, args):
         raise Exception(' '.join(args[1:]))
-    
+
     def cmd_go(self, args):
         if os.path.exists(path := self.get_path(args[1])):
             self.path = path
             os.chdir(path)
         else:
             raise FileNotFoundError(f"{args[1]}: no such file or folder")
-        
+
     def cmd_peek(self, args):
         if os.path.isfile(path := os.path.join(self.path, args[1])):
             with open(path, 'r') as f:
@@ -102,13 +101,14 @@ class Shell:
                 self.print(f"{args[0]} is unsupported over SSH")
                 return
 
-            subprocess.run([sys.executable, binary] + args[1:], stdout=self.stdout, stderr=subprocess.STDOUT, stdin=self.stdin, text=True, env=self.env)
+            subprocess.run([sys.executable, binary] + args[1:], stdout=self.stdout, stderr=subprocess.STDOUT,
+                           stdin=self.stdin, text=True, env=self.env)
         else:
             self.print(f"Invalid command: {args[0]}")
 
     def get_prompt(self):
         return f"{nl}{self.cwd()}$ "
-    
+
     @staticmethod
     def get_path(*paths: str):
         path = os.path.abspath(os.path.join(root_dir, *paths))
@@ -139,10 +139,10 @@ class Shell:
                     self.run_line(''.join(buffer))
                     buffer.clear()
                     self.print(self.get_prompt())
-                elif char == '\x03':    # ^C
+                elif char == '\x03':  # ^C
                     buffer.clear()
                     self.print(self.get_prompt())
-                elif char == '\x7f':    # backspace
+                elif char == '\x7f':  # backspace
                     if len(buffer) <= 0:
                         continue
                     self.print('\x08 \x08')
@@ -159,10 +159,3 @@ class Shell:
                 buffer.clear()
                 self.print(f"bdsh: unhandled exception: {e}{nl}{self.get_prompt()}")
                 continue
-
-
-if __name__ == "__main__":
-    _cwd = os.getcwd()
-    bdsh = Shell(sys.stdout, sys.stdin)
-    bdsh.start()
-    os.chdir(_cwd)
