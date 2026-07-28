@@ -3,9 +3,9 @@ import subprocess
 import sys
 from typing import TextIO
 
-from bdsh.command import Command
+from bdsh import NL
+from bdsh.command.commands import register_commands
 
-NL = '\r\n'
 ROOT_DIR = os.path.abspath('bdsh')
 
 
@@ -21,18 +21,7 @@ class Shell:
 
         self.header = f"BadOS Dynamic Shell (v0.1) {'(BadBandSSH)' if is_ssh else ''}{NL}(c) Bad Technologies. All rights reserved.{NL}"
 
-        self.commands = {
-            "exit": Command(lambda _, s: exit(0), ""),
-            "help": Command(lambda _, s: self.print(f"bdsh commands:{NL}" + '\t'.join(self.commands.keys())), ""),
-            "echo": Command(lambda args, s: self.print(' '.join(args[1:])), ""),
-            "ld": Command(self.cmd_ld, ""),
-            "ver": Command(lambda _, s: self.print(self.header), ""),
-            "def": Command(self.cmd_def, ""),
-            "throw": Command(self.cmd_throw, ""),
-            "cwd": Command(lambda _, s: self.print(self.cwd()), ""),
-            "go": Command(self.cmd_go, ""),
-            "peek": Command(self.cmd_peek, ""),
-        }
+        self.commands = register_commands(self)
 
         self.definitions = {
             "ls": "ld",
@@ -42,48 +31,6 @@ class Shell:
 
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
-
-    def cmd_ld(self, args, shell):
-        try:
-            path = self.get_path(args[1]) if len(args) > 1 else self.path
-            items = os.listdir(path)
-            self.print('\t'.join([item + '/' if os.path.isdir(os.path.join(path, item)) else item for item in items]))
-        except FileNotFoundError:
-            raise FileNotFoundError(f"{args[1]}: does not exist")
-
-    def cmd_def(self, args, shell):
-        if '-h' in args or '--help' in args:
-            self.print(
-                f"usage: def <keyword> <definition>{NL}binds <keyword> to <definition>{NL}executing <keyword> will execute <definition>")
-            return
-
-        if len(args) < 3:
-            raise ValueError("missing params (at least 3)")
-
-        definition = " ".join(args[2:])
-
-        if args[1] == definition:
-            raise SyntaxError("keyword cannot be the same as the definition")
-
-        self.definitions[args[1]] = definition
-        self.print(f"defined '{args[1]}' to run '{definition}'")
-
-    def cmd_throw(self, args, shell):
-        raise Exception(' '.join(args[1:]))
-
-    def cmd_go(self, args, shell):
-        if os.path.exists(path := self.get_path(args[1])):
-            self.path = path
-            os.chdir(path)
-        else:
-            raise FileNotFoundError(f"{args[1]}: no such file or folder")
-
-    def cmd_peek(self, args, shell):
-        if os.path.isfile(path := os.path.join(self.path, args[1])):
-            with open(path, 'r') as f:
-                self.print(f.read())
-        else:
-            raise FileNotFoundError(f"{args[1]}: no such file")
 
     def run_line(self, line: str):
         if line == "":
