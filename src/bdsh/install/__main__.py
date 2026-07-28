@@ -183,41 +183,41 @@ def main():
     key.write_private_key_file(virtsh.get_path('cfg', 'badbandssh_rsa_key'))
     print("Stored BadBandSSH private key")
 
-    print_header("CREATE LAUNCHER")
-    if not os.path.exists("bin"):
-        os.mkdir("bin")
-
-    binpath = os.path.abspath(BDSH_SRC)
-
-    if sys.platform.startswith("win"):
-        with open(os.path.join("bin", "bdsh.bat"), "w") as f:
-            f.write(f'@echo off\n{sys.executable} {binpath} %*')
-        print("Created WINDOWS launcher")
-
-    else:
-        with open(os.path.join("bin", "bdsh"), "w") as f:
-            f.write(f'#!/bin/bash\n{sys.executable} {binpath} "$@"')
-        os.chmod(os.path.join("bin", "bdsh"), 0o755)
-        if install_type is not InstallType.SYSTEM:
-            print("Created UNIX launcher")
-        else:
-            print("Created launcher")
-
-    if install_type is not InstallType.SYSTEM:
-        print(
-            f"[!] Please add the following path to your PATH after installation completes:\n\t{os.path.abspath('bin')}")
-        getpass("Press ENTER to continue...")
-
-    print_header("CLEANING UP")
-
-    print("Done!\n")
-
-    if install_type is not InstallType.SYSTEM:
-        print(f"""After adding the bdsh binaries to PATH, you can run bdsh with:
-    bdsh
-
-Or, run the binary directly by running this file:
-    {os.path.join(os.path.abspath('bin'), "bdsh.bat" if sys.platform.startswith("win") else "bdsh")}""")
+#     print_header("CREATE LAUNCHER")
+#     if not os.path.exists("bin"):
+#         os.mkdir("bin")
+#
+#     binpath = os.path.abspath(BDSH_SRC)
+#
+#     if sys.platform.startswith("win"):
+#         with open(os.path.join("bin", "bdsh.bat"), "w") as f:
+#             f.write(f'@echo off\n{sys.executable} {binpath} %*')
+#         print("Created WINDOWS launcher")
+#
+#     else:
+#         with open(os.path.join("bin", "bdsh"), "w") as f:
+#             f.write(f'#!/bin/bash\n{sys.executable} {binpath} "$@"')
+#         os.chmod(os.path.join("bin", "bdsh"), 0o755)
+#         if install_type is not InstallType.SYSTEM:
+#             print("Created UNIX launcher")
+#         else:
+#             print("Created launcher")
+#
+#     if install_type is not InstallType.SYSTEM:
+#         print(
+#             f"[!] Please add the following path to your PATH after installation completes:\n\t{os.path.abspath('bin')}")
+#         getpass("Press ENTER to continue...")
+#
+#     print_header("CLEANING UP")
+#
+#     print("Done!\n")
+#
+#     if install_type is not InstallType.SYSTEM:
+#         print(f"""After adding the bdsh binaries to PATH, you can run bdsh with:
+#     bdsh
+#
+# Or, run the binary directly by running this file:
+#     {os.path.join(os.path.abspath('bin'), "bdsh.bat" if sys.platform.startswith("win") else "bdsh")}""")
 
 
 if __name__ == "__main__":
