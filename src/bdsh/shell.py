@@ -3,6 +3,8 @@ import subprocess
 import sys
 from typing import TextIO
 
+from bdsh.command import Command
+
 nl = '\r\n'
 root_dir = os.path.abspath('bdsh')
 
@@ -20,16 +22,16 @@ class Shell:
         self.header = f"BadOS Dynamic Shell (v0.1) {'(BadBandSSH)' if is_ssh else ''}{nl}(c) Bad Technologies. All rights reserved.{nl}"
 
         self.commands = {
-            "exit": lambda _: exit(0),
-            "help": lambda _: self.print(f"bdsh commands:{nl}" + '\t'.join(self.commands.keys())),
-            "echo": lambda args: self.print(' '.join(args[1:])),
-            "ld": self.cmd_ld,
-            "ver": lambda _: self.print(self.header),
-            "def": self.cmd_def,
-            "throw": self.cmd_throw,
-            "cwd": lambda _: self.print(self.cwd()),
-            "go": self.cmd_go,
-            "peek": self.cmd_peek,
+            "exit": Command(lambda _: exit(0), ""),
+            "help": Command(lambda _: self.print(f"bdsh commands:{nl}" + '\t'.join(self.commands.keys())), ""),
+            "echo": Command(lambda args: self.print(' '.join(args[1:])), ""),
+            "ld": Command(self.cmd_ld, ""),
+            "ver": Command(lambda _: self.print(self.header), ""),
+            "def": Command(self.cmd_def, ""),
+            "throw": Command(self.cmd_throw, ""),
+            "cwd": Command(lambda _: self.print(self.cwd()), ""),
+            "go": Command(self.cmd_go, ""),
+            "peek": Command(self.cmd_peek, ""),
         }
 
         self.definitions = {
@@ -93,7 +95,7 @@ class Shell:
             self.run_line(self.definitions[args[0]] + " " + ' '.join(args[1:]))
         elif args[0] in self.commands:
             try:
-                self.commands[args[0]](args)
+                self.commands[args[0]].execute(args)
             except Exception as e:
                 self.print(f"{args[0]}: {e}")
         elif os.path.exists(binary := self.get_path("exec", args[0])):

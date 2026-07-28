@@ -1,0 +1,25 @@
+from abc import ABC, abstractmethod
+from collections.abc import Callable
+from typing import List, Any
+
+
+class ICommand(ABC):
+    @abstractmethod
+    def execute(self, args: List[str]):
+        pass
+
+    @abstractmethod
+    def help(self) -> str:
+        pass
+
+
+class Command(ICommand):
+    def __init__(self, execute: Callable[[List[str]], Any], help_msg: str):
+        self.help_msg = help_msg
+        self.execute = execute
+
+    def execute(self, args: List[str]):
+        self.execute(args)
+
+    def help(self) -> str:
+        return self.help_msg
