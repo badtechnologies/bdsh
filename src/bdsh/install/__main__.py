@@ -1,10 +1,11 @@
-from getpass import getpass
 import json
 import os
-import sys
 import subprocess
-from enum import Enum
-from typing import Callable
+import sys
+from getpass import getpass
+
+from bdsh.install import InstallType
+from bdsh.install.util import prompt, print_header, print_task, install_package
 
 PYREQS_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt"
 GIT_URL = "https://github.com/badtechnologies/bdsh"
@@ -18,47 +19,10 @@ BDSH_DIRS = ['cfg', 'prf', 'exec']
 BDSH_ROOT = "bdsh"
 
 
-class InstallType(Enum):
-    STANDARD = "std"    # standard bdsh installation
-    SYSTEM = "sys"      # system-wide bdsh installation; made for BadOS Shell System
+def main():
+    # default args
+    install_type = InstallType.STANDARD
 
-    @staticmethod
-    def display():
-        for t in InstallType:
-            print(f"\t> {t.value} ({t.name})")
-
-
-# default args
-install_type = InstallType.STANDARD
-
-
-def install_package(package_name: str):
-    package_name = package_name.strip()
-    try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("OK")
-    except subprocess.CalledProcessError:
-        print("FAILED")
-        exit(0x81)
-
-
-def prompt(query: str, on_cancel: Callable[[], None], **default: str):
-    response = input((query + " [y/n] ") or default).lower()
-    while response not in {'y', 'n'}:
-        pass
-    if response == 'n':
-        on_cancel()
-
-
-def print_header(header: str):
-    print('\n' + f" {header} ".center(50, '='))
-
-
-def print_task(task: str):
-    print(task+'...', end=" ", flush=True)
-
-
-if __name__ == "__main__":
     # parse args
     for arg in sys.argv:
         arg = arg.split("=")
@@ -81,7 +45,8 @@ if __name__ == "__main__":
     if install_type is not InstallType.SYSTEM:
         print_task("Upgrading environment package installer")
         try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"],
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             print("OK")
         except subprocess.CalledProcessError:
             print("FAILED")
@@ -182,11 +147,11 @@ if __name__ == "__main__":
 
         users[username] = password
 
-        def exitloop():
-            global username
+        def exit_loop():
+            nonlocal username
             username = None
 
-        prompt("Create another?", exitloop)
+        prompt("Create another?", exit_loop)
 
         if username is None:
             break
@@ -268,16 +233,17 @@ if __name__ == "__main__":
         print("Created WINDOWS launcher")
 
     else:
-        with open(os.path.join("bin", "bdsh"), "w") as f:
+        with open(os.path.join("bin", "../../../bdsh"), "w") as f:
             f.write(f'#!/bin/bash\n{sys.executable} {binpath} "$@"')
-        os.chmod(os.path.join("bin", "bdsh"), 0o755)
+        os.chmod(os.path.join("bin", "../../../bdsh"), 0o755)
         if install_type is not InstallType.SYSTEM:
             print("Created UNIX launcher")
         else:
             print("Created launcher")
 
     if install_type is not InstallType.SYSTEM:
-        print(f"[!] Please add the following path to your PATH after installation completes:\n\t{os.path.abspath('bin')}")
+        print(
+            f"[!] Please add the following path to your PATH after installation completes:\n\t{os.path.abspath('bin')}")
         getpass("Press ENTER to continue...")
 
     print_header("CLEANING UP")
@@ -290,3 +256,7 @@ if __name__ == "__main__":
 
 Or, run the binary directly by running this file:
     {os.path.join(os.path.abspath('bin'), "bdsh.bat" if sys.platform.startswith("win") else "bdsh")}""")
+
+
+if __name__ == "__main__":
+    main()
