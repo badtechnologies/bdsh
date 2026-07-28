@@ -130,6 +130,7 @@ def main():
         nonlocal install_packages
         install_packages = False
 
+    res = None
     while install_packages:
         print_task("Fetching bpm from bpl")
         res = requests.get(f'{BPL_URL}/bpm/bpl.json')

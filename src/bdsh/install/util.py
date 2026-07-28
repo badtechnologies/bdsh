@@ -1,5 +1,6 @@
 import subprocess
 import sys
+from typing import Callable
 
 
 def install_package(package_name: str):
