@@ -22,7 +22,11 @@ class User:
 
 class UserManager:
     def __init__(self, path):
-        self.users = UserManager.load(path)
+        try:
+            self.users = UserManager.load(path)
+        except FileNotFoundError:
+            UserManager.save(path, [])
+            self.users = []
 
     @staticmethod
     def save(path: str, users: List[User]) -> None:

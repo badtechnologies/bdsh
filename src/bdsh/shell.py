@@ -34,10 +34,7 @@ class Shell:
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
 
         self.current_user: User | None = None
-        try:
-            self.user_manager = UserManager(Shell.get_path("cfg", "userman"))
-        except OSError:
-            self.fatal("bdsh: failed to open userman, terminating session")
+        self.user_manager = UserManager(Shell.get_path("cfg", "userman"))
 
     def fatal(self, msg: str, exit_code: int = 129):
         self.print(f"FATAL({exit_code}): {msg}{NL}")
@@ -86,11 +83,19 @@ class Shell:
             exit(1)
 
         # handle authentication
+        if not self.current_user:
+            self.print(NL + "You are not logged in!" + NL)
+
         while not self.current_user:
-            self.print("You are not logged in!" + NL)
-            username = input("Username: ")
-            password = getpass("Password: ")
-            self.current_user = self.user_manager.try_login(username, password)
+            try:
+                username = input("Username: ")
+                password = getpass("Password: ")
+                self.current_user = self.user_manager.try_login(username, password)
+                if not self.current_user:
+                    self.print(NL + "Invalid login" + NL)
+            except KeyboardInterrupt:
+                self.print(NL)
+                continue
 
         self.print(f"Welcome, {self.current_user.username}!{NL}")
 
