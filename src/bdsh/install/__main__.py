@@ -55,7 +55,6 @@ def main():
 
     print_task("Installing system HTTP client")
     install_package("requests")
-    import requests
 
     print_task("Installing security manager")
     install_package("requests")
@@ -111,60 +110,8 @@ def main():
     userman.save()
     print("OK")
 
-    print_header("INSTALL BPM")
-
-    install_packages = True
-
-    def stop_install():
-        nonlocal install_packages
-        install_packages = False
-
-    res = None
-    while install_packages:
-        print_task("Fetching bpm from bpl")
-        res = requests.get(f'{BPL_URL}/bpm/bpl.json')
-
-        if not res.ok:
-            print(f"""FAILED\nSomething went wrong while fetching bpm from bpl, more information below:
-\tError:\t\tHTTP {res.status_code} {res.reason}
-\tLibrary:\t{BPL_URL}
-\tResponse:\t{res.content.decode()}""")
-
-            prompt("Try again?", stop_install)
-        else:
-            print("OK")
-            break
-
-    if install_packages:
-        meta = res.json()
-        print_task(f"Installing bpm-{meta['version']} ({meta['name']})")
-        res = requests.get(f'{BPL_URL}/bpm/{meta["bin"]}')
-
-        while install_packages:
-            if not res.ok:
-                print(f"""FAILED\nSomething went wrong while downloading bpm binaries, more information below:
-\tError:\t\tHTTP {res.status_code} {res.reason}
-\tLibrary:\t{BPL_URL}
-\tResponse:\t{res.content.decode()}
-\tRequested Bin:\t{meta['bin']}
-\tMetadata:\t{meta}""")
-
-                prompt("Try again?", stop_install)
-            else:
-                break
-
-    if install_packages:
-        with open(virtsh.get_path('exec', 'bpm'), 'wb') as f:
-            f.write(res.content)
-
-        print("OK")
-
-        print_header("INSTALL PACKAGES")
-
-        virtsh.run_line("bpm install -y core")
-
-    else:
-        print("[!] bpm could not be installed, no packages installed.")
+    print_header("INSTALL PACKAGES")
+    virtsh.run_line("bpm install -y core")
 
     print_header("SETUP BADBANDSSH")
 
