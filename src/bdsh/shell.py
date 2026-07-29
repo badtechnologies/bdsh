@@ -4,7 +4,7 @@ import sys
 from getpass import getpass
 from typing import TextIO
 
-from bdsh import NL, __version__
+from bdsh import NL, __version__, get_bdsh_path
 from bdsh.command.commands import register_commands
 from bdsh.security.users import User, UserManager
 
@@ -18,7 +18,7 @@ class Shell:
         self.print = lambda s: self.stdout.write(s)
         self.readchar = lambda: self.stdin.read(1)
         self.is_ssh = is_ssh
-        self.path = self.get_path()
+        self.path = Shell.get_path()
         self.cwd = lambda: os.path.relpath(self.path, ROOT_DIR).replace('.', '/', 1)
 
         self.header = f"BadOS Dynamic Shell (v{__version__}) {'(BadBandSSH)' if is_ssh else ''}{NL}(c) Bad Technologies. All rights reserved.{NL}"
@@ -70,8 +70,7 @@ class Shell:
 
     @staticmethod
     def get_path(*paths: str):
-        path = os.path.abspath(os.path.join(ROOT_DIR, *paths))
-        return path if path.startswith(ROOT_DIR) else ROOT_DIR
+        return get_bdsh_path(*paths)
 
     def start(self):
         # ensure session is valid

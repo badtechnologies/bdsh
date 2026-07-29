@@ -1,4 +1,4 @@
-import json
+import os
 import os
 import subprocess
 import sys
@@ -6,6 +6,7 @@ from getpass import getpass
 
 from bdsh.install import InstallType
 from bdsh.install.util import prompt, print_header, print_task, install_package
+from bdsh.security.users import UserManager
 from bdsh.shell import Shell
 
 PYREQS_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt"
@@ -86,20 +87,16 @@ def main():
 
     print_header("CREATE USERS")
 
-    users = {}
+    userman = UserManager(os.path.join(BDSH_ROOT, "cfg", "userman"))
     while True:
         username = input("Enter username\t\t")
         password = getpass("Enter password\t\t")
 
-        if username.strip() == '' or password.strip() == '':
-            print("Empty username or password, try again")
+        try:
+            userman.add(username, password)
+        except ValueError as e:
+            print(f"Failed to create user: {e}. Try again.")
             continue
-
-        if username in users:
-            print("Username in use, try again")
-            continue
-
-        users[username] = password
 
         def exit_loop():
             nonlocal username
@@ -110,15 +107,9 @@ def main():
         if username is None:
             break
 
-    with open(f'{BDSH_ROOT}/cfg/users.json', 'w') as f:
-        json.dump(users, f)
-
-    for username in users.keys():
-        path = os.path.join(f'{BDSH_ROOT}/prf', username)
-        if not os.path.exists(path):
-            os.mkdir(path)
-
-    print(f"Created {len(users)} user(s)")
+    print_task("Create users")
+    userman.save()
+    print("OK")
 
     print_header("INSTALL BPM")
 

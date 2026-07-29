@@ -1,8 +1,11 @@
+import os
 from dataclasses import dataclass
 from typing import List, Never
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+
+from bdsh import get_bdsh_path
 
 hasher = PasswordHasher()
 
@@ -21,24 +24,23 @@ class User:
 
 
 class UserManager:
-    def __init__(self, path):
+    def __init__(self, path: str):
+        self.path = path
         try:
-            self.users = UserManager.load(path)
+            self.users = self.load()
         except FileNotFoundError:
-            UserManager.save(path, [])
             self.users = []
+            self.save()
 
-    @staticmethod
-    def save(path: str, users: List[User]) -> None:
-        with open(path, "w", encoding="utf-8") as f:
-            for user in users:
+    def save(self) -> None:
+        with open(self.path, "w", encoding="utf-8") as f:
+            for user in self.users:
                 f.write(f"{user.username}:{user.password_hash}\n")
 
-    @staticmethod
-    def load(path: str) -> List[User] | Never:
+    def load(self) -> List[User] | Never:
         users = []
 
-        with open(path, "r", encoding="utf-8") as f:
+        with open(self.path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.rstrip("\n")
 
@@ -47,6 +49,10 @@ class UserManager:
 
                 username, password_hash = line.split(":", 1)
                 users.append(User(username, password_hash))
+
+                path = get_bdsh_path("prf", username)
+                if not os.path.exists(path):
+                    os.mkdir(path)
 
         return users
 
@@ -57,6 +63,13 @@ class UserManager:
     def add(self, username: str, password: str) -> None:
         if not UserManager.validate_username(username):
             raise ValueError("username contains illegal characters")
+
+        if username.strip() == '' or password.strip() == '':
+            raise ValueError("username or password cannot be empty")
+
+        for user in self.users:
+            if user.username == username:
+                raise ValueError("username already in use")
 
         self.users.append(User(username, hasher.hash(password)))
 
