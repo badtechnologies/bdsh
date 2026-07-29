@@ -1,10 +1,12 @@
 import os
 import subprocess
 import sys
+from getpass import getpass
 from typing import TextIO
 
-from bdsh import NL, __version__
+from bdsh import NL, __version__, get_bdsh_path
 from bdsh.command.commands import register_commands
+from bdsh.security.users import User, UserManager
 
 ROOT_DIR = os.path.abspath('bdsh')
 
@@ -16,13 +18,12 @@ class Shell:
         self.print = lambda s: self.stdout.write(s)
         self.readchar = lambda: self.stdin.read(1)
         self.is_ssh = is_ssh
-        self.path = self.get_path()
+        self.path = Shell.get_path()
         self.cwd = lambda: os.path.relpath(self.path, ROOT_DIR).replace('.', '/', 1)
 
         self.header = f"BadOS Dynamic Shell (v{__version__}) {'(BadBandSSH)' if is_ssh else ''}{NL}(c) Bad Technologies. All rights reserved.{NL}"
 
         self.commands = register_commands(self)
-
         self.definitions = {
             "ls": "ld",
             "dir": "ld",
@@ -32,8 +33,15 @@ class Shell:
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
 
+        self.current_user: User | None = None
+        self.user_manager = UserManager(Shell.get_path("cfg", "userman"))
+
+    def fatal(self, msg: str, exit_code: int = 129):
+        self.print(f"FATAL({exit_code}): {msg}{NL}")
+        exit(exit_code)
+
     def run_line(self, line: str):
-        line = line.strip() # dont want to process invisible characters
+        line = line.strip()  # dont want to process invisible characters
 
         if line == "":
             return
@@ -62,10 +70,10 @@ class Shell:
 
     @staticmethod
     def get_path(*paths: str):
-        path = os.path.abspath(os.path.join(ROOT_DIR, *paths))
-        return path if path.startswith(ROOT_DIR) else ROOT_DIR
+        return get_bdsh_path(*paths)
 
     def start(self):
+        # ensure session is valid
         os.chdir(self.get_path())
         self.run_line("ver")
 
@@ -73,8 +81,25 @@ class Shell:
             self.print(f"bdsh: bdsh directory does not exist{NL}")
             exit(1)
 
-        self.print(self.get_prompt())
+        # handle authentication
+        if not self.current_user:
+            self.print(NL + "You are not logged in!" + NL)
 
+        while not self.current_user:
+            try:
+                username = input("Username: ")
+                password = getpass("Password: ")
+                self.current_user = self.user_manager.try_login(username, password)
+                if not self.current_user:
+                    self.print(NL + "Invalid login" + NL)
+            except KeyboardInterrupt:
+                self.print(NL)
+                continue
+
+        self.print(f"Welcome, {self.current_user.username}!{NL}")
+
+        # start processing commands
+        self.print(self.get_prompt())
         buffer = []
 
         while True:

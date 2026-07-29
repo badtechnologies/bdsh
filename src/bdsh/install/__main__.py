@@ -1,4 +1,4 @@
-import json
+import os
 import os
 import subprocess
 import sys
@@ -6,6 +6,8 @@ from getpass import getpass
 
 from bdsh.install import InstallType
 from bdsh.install.util import prompt, print_header, print_task, install_package
+from bdsh.security.users import UserManager
+from bdsh.shell import Shell
 
 PYREQS_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt"
 GIT_URL = "https://github.com/badtechnologies/bdsh"
@@ -59,10 +61,6 @@ def main():
     install_package("requests")
     from paramiko import RSAKey
 
-    print_task("Installing BadOS Dynamic Shell")
-    install_package("bdsh")
-    from bdsh.shell import Shell
-
     print_header("INIT BDSH")
 
     print_task("Initializing bdsh directory structure")
@@ -89,20 +87,16 @@ def main():
 
     print_header("CREATE USERS")
 
-    users = {}
+    userman = UserManager(os.path.join(BDSH_ROOT, "cfg", "userman"))
     while True:
         username = input("Enter username\t\t")
         password = getpass("Enter password\t\t")
 
-        if username.strip() == '' or password.strip() == '':
-            print("Empty username or password, try again")
+        try:
+            userman.add(username, password)
+        except ValueError as e:
+            print(f"Failed to create user: {e}. Try again.")
             continue
-
-        if username in users:
-            print("Username in use, try again")
-            continue
-
-        users[username] = password
 
         def exit_loop():
             nonlocal username
@@ -113,19 +107,14 @@ def main():
         if username is None:
             break
 
-    with open(f'{BDSH_ROOT}/cfg/users.json', 'w') as f:
-        json.dump(users, f)
-
-    for username in users.keys():
-        path = os.path.join(f'{BDSH_ROOT}/prf', username)
-        if not os.path.exists(path):
-            os.mkdir(path)
-
-    print(f"Created {len(users)} user(s)")
+    print_task("Create users")
+    userman.save()
+    print("OK")
 
     print_header("INSTALL BPM")
 
     install_packages = True
+
     def stop_install():
         nonlocal install_packages
         install_packages = False
@@ -182,42 +171,6 @@ def main():
     key = RSAKey.generate(bits=2048)
     key.write_private_key_file(virtsh.get_path('cfg', 'badbandssh_rsa_key'))
     print("Stored BadBandSSH private key")
-
-#     print_header("CREATE LAUNCHER")
-#     if not os.path.exists("bin"):
-#         os.mkdir("bin")
-#
-#     binpath = os.path.abspath(BDSH_SRC)
-#
-#     if sys.platform.startswith("win"):
-#         with open(os.path.join("bin", "bdsh.bat"), "w") as f:
-#             f.write(f'@echo off\n{sys.executable} {binpath} %*')
-#         print("Created WINDOWS launcher")
-#
-#     else:
-#         with open(os.path.join("bin", "bdsh"), "w") as f:
-#             f.write(f'#!/bin/bash\n{sys.executable} {binpath} "$@"')
-#         os.chmod(os.path.join("bin", "bdsh"), 0o755)
-#         if install_type is not InstallType.SYSTEM:
-#             print("Created UNIX launcher")
-#         else:
-#             print("Created launcher")
-#
-#     if install_type is not InstallType.SYSTEM:
-#         print(
-#             f"[!] Please add the following path to your PATH after installation completes:\n\t{os.path.abspath('bin')}")
-#         getpass("Press ENTER to continue...")
-#
-#     print_header("CLEANING UP")
-#
-#     print("Done!\n")
-#
-#     if install_type is not InstallType.SYSTEM:
-#         print(f"""After adding the bdsh binaries to PATH, you can run bdsh with:
-#     bdsh
-#
-# Or, run the binary directly by running this file:
-#     {os.path.join(os.path.abspath('bin'), "bdsh.bat" if sys.platform.startswith("win") else "bdsh")}""")
 
 
 if __name__ == "__main__":
