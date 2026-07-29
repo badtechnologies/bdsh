@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Never
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -31,7 +31,7 @@ class UserManager:
                 f.write(f"{user.username}:{user.password_hash}\n")
 
     @staticmethod
-    def load(path: str) -> List[User]:
+    def load(path: str) -> List[User] | Never:
         users = []
 
         with open(path, "r", encoding="utf-8") as f:
