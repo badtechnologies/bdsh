@@ -5,7 +5,7 @@ from typing import List, Never
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
-from bdsh import get_bdsh_path
+from bdsh import get_shell_path
 
 hasher = PasswordHasher()
 
@@ -50,7 +50,7 @@ class UserManager:
                 username, password_hash = line.split(":", 1)
                 users.append(User(username, password_hash))
 
-                path = get_bdsh_path("prf", username)
+                path = get_shell_path("prf", username)
                 if not os.path.exists(path):
                     os.mkdir(path)
 

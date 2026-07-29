@@ -5,6 +5,7 @@ from typing import List
 
 import requests
 
+from bdsh import get_shell_path
 from bdsh.command import Command
 
 BPL_REPO = 'badtechnologies/bpl/main'
@@ -62,22 +63,20 @@ class Package:
             raise PackageException(package, f"something went wrong. HTTP {res.status_code} while fetching package data")
 
 
-packages: List[Package] = []
-
-
-def process_package(_pkg, repo: str):
-    try:
-        package = Package.fetch(_pkg, repo)
-        print(f"\t{_pkg}: found '{package.name}' v{package.version}")
-        packages.append(package)
-        return package.requires if package.requires else []
-    except PackageException as e:
-        print('\t' + str(e))
-        return []
-
-
 class BadOSPackageManagerCommand(Command):
     def execute(self, args: List[str]):
+        packages: List[Package] = []
+
+        def process_package(_pkg, repo: str):
+            try:
+                pkg = Package.fetch(_pkg, repo)
+                print(f"\t{_pkg}: found '{pkg.name}' v{pkg.version}")
+                packages.append(pkg)
+                return pkg.requires if pkg.requires else []
+            except PackageException as e:
+                print('\t' + str(e))
+                return []
+
         try:
             args = parser.parse_args(args[1:])
         except SystemExit:
@@ -120,7 +119,7 @@ class BadOSPackageManagerCommand(Command):
                         f"\tHTTP {res.status_code}; could not access package binaries")
                     continue
 
-                with open(f'bdsh/exec/{package.id}', 'wb') as f:
+                with open(get_shell_path("exec", package.id), 'wb') as f:
                     f.write(res.content)
 
         elif args.action == 'remove':
@@ -134,7 +133,7 @@ class BadOSPackageManagerCommand(Command):
 
             for package in args.packages:
                 print(f"Deleting {package}")
-                path = f"bdsh/exec/{package}"
+                path = get_shell_path("exec", package)
 
                 if not os.path.exists(path):
                     print("\tCould not find package, skipping")
