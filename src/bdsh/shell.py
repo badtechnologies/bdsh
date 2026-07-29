@@ -4,12 +4,9 @@ import sys
 from getpass import getpass
 from typing import TextIO
 
-from bdsh import NL, __version__, get_bdsh_path
+from bdsh import NL, __version__, get_shell_path, ROOT_DIR
 from bdsh.command.commands import register_commands
 from bdsh.security.users import User, UserManager
-
-ROOT_DIR = os.path.abspath('bdsh')
-
 
 class Shell:
     def __init__(self, stdout: TextIO | None, stdin: TextIO | None, **is_ssh: bool):
@@ -70,7 +67,7 @@ class Shell:
 
     @staticmethod
     def get_path(*paths: str):
-        return get_bdsh_path(*paths)
+        return get_shell_path(*paths)
 
     def start(self):
         # ensure session is valid

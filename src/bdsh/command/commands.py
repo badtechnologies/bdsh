@@ -3,6 +3,7 @@ from typing import List, TYPE_CHECKING, Dict
 
 from bdsh import NL
 from bdsh.command import Command, AnonymousCommand
+from bdsh.command.bpm import BadOSPackageManagerCommand
 
 if TYPE_CHECKING:
     from bdsh.shell import Shell
@@ -107,4 +108,5 @@ def register_commands(shell: Shell) -> Dict[str, Command]:
         "cwd": AnonymousCommand(shell, lambda _: shell.print(shell.cwd()), ""),
         "go": GoCommand(shell),
         "peek": PeekCommand(shell),
+        "bpm": BadOSPackageManagerCommand(shell)
     }
