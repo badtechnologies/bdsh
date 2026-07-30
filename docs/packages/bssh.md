@@ -1,15 +1,16 @@
 ---
 title: BadBandSSH
-nav_order: 6
+parent: Packages
+nav_order: 1
 ---
 
 # BadBandSSH (bssh)
 
 BadBandSSH allows remove connections into your bdsh installation via the SSH protocol.
 
-> #### ⚠️ Heads up!
-> BadBandSSH v0.9 does not support the use of binaries yet. Only bdsh commands and definitions can be run through
-> BadBandSSH.
+{: .headsup }
+BadBandSSH v0.9 does not support the use of binaries yet. Only bdsh commands and definitions can be run through
+BadBandSSH.
 
 ## Installation
 
