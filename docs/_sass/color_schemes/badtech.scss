@@ -1,0 +1,16 @@
+@import "./color_schemes/dark";
+
+$link-color: #beddff;
+$btn-primary-color: #5e17eb;
+$base-button-color: #5e17eb;
+$feedback-color: #5e17eb;
+
+.site-logo {
+  display: inline-flex;
+  align-items: center;
+}
+
+.site-logo::after {
+  content: "Shell";
+  margin-left: 4rem;
+}
