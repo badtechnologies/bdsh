@@ -3,7 +3,7 @@ import json
 import os
 import re
 from dataclasses import dataclass, field, fields
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Protocol, Literal, cast
 from urllib.parse import urlparse
 
 import requests
@@ -26,6 +26,13 @@ parser.add_argument('-y', '--yes', action='store_true',
                     help='assume "yes" as the answer to all prompts and run non-interactively')
 parser.add_argument('-r', '--repo', default=BPL_REPO,
                     help='set repo to download from, in the format "owner/repo/branch", must be on GitHub')
+
+
+class BpmArgs(argparse.Namespace):
+    action: Literal["install", "remove"]
+    packages: list[str]
+    yes: bool
+    repo: str
 
 
 def get_bpl_uri(repo: str, id: str, file: str):
@@ -117,19 +124,20 @@ class BadOSPackageManagerCommand(Command):
     def __init__(self, shell: Shell):
         super().__init__(shell)
         self.packages: list[Package] = []
+        self.handlers: dict[str, Callable[[BpmArgs], None]] = {
+            "install": self.__install,
+            "remove": self.__remove,
+        }
 
     def execute(self, args: list[str]):
         self.packages.clear()
 
         try:
-            args = parser.parse_args(args[1:])
+            args = cast(BpmArgs, parser.parse_args(args[1:]))
         except SystemExit:
             return
 
-        if args.action == 'install':
-            self.__install(args)
-        elif args.action == 'remove':
-            self.__remove(args)
+        self.handlers[args.action](args)
 
     def __discover_package_dependencies(self, _pkg, repo: str) -> list[str]:
         try:
@@ -141,7 +149,7 @@ class BadOSPackageManagerCommand(Command):
             self.shell.print('\t' + str(e) + NL)
             return []
 
-    def __install(self, args):
+    def __install(self, args: BpmArgs):
         self.shell.print("Discovering packages and dependencies..." + NL)
 
         deps = []
@@ -203,7 +211,7 @@ class BadOSPackageManagerCommand(Command):
                 exec(res.content.decode())
             self.shell.print("Done!" + NL)
 
-    def __remove(self, args):
+    def __remove(self, args: BpmArgs):
         if not args.yes:
             while (s := input(
                     f"Remove {len(args.packages)} package(s): {' '.join(args.packages)}? [Y/n] " or 'n').lower()) not in {
