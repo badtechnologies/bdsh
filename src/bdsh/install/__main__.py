@@ -56,10 +56,6 @@ def main():
     print_task("Installing system HTTP client")
     install_python_package("requests")
 
-    print_task("Installing security manager")
-    install_python_package("requests")
-    from paramiko import RSAKey
-
     print_header("INIT BDSH")
 
     print_task("Initializing bdsh directory structure")
