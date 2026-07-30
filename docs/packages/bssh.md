@@ -1,7 +1,7 @@
 ---
 title: BadBandSSH
 parent: Packages
-nav_order: 1
+nav_order: 2
 ---
 
 # BadBandSSH (bssh)
