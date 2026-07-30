@@ -6,6 +6,7 @@ plugins:
 title: bdsh
 description: Documentation for BadOS Dynamic Shell and its components
 logo: "/assets/img/logo.svg"
+favicon_ico: "/assets/img/favicon.svg"
 url: https://badtechnologies.github.io
 baseurl: /bdsh
 
