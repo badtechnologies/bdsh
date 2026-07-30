@@ -10,6 +10,8 @@ favicon_ico: "/assets/img/favicon.svg"
 url: https://badtechnologies.github.io
 baseurl: /bdsh
 
+footer_custom: _includes/footer_custom.html
+
 search_enabled: true
 heading_anchors: true
 nav_enabled: true
