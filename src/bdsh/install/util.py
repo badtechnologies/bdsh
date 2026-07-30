@@ -3,7 +3,7 @@ import sys
 from typing import Callable
 
 
-def install_package(package_name: str):
+def install_python_package(package_name: str):
     package_name = package_name.strip()
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package_name], stdout=subprocess.DEVNULL,

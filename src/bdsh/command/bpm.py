@@ -2,14 +2,17 @@ import argparse
 import json
 import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import requests
 
-from bdsh import get_shell_path
+import bdsh
+from bdsh import NL
 from bdsh.command import Command
+from bdsh.install.util import install_python_package, print_task
+from bdsh.util.version import VersionSelector
 
 if TYPE_CHECKING:
     from bdsh.shell import Shell
@@ -24,6 +27,11 @@ parser.add_argument('-y', '--yes', action='store_true',
 parser.add_argument('-r', '--repo', default=BPL_REPO,
                     help='set repo to download from, in the format "owner/repo/branch", must be on GitHub')
 
+
+def get_bpl_uri(repo: str, id: str, file: str):
+    return f'https://raw.githubusercontent.com/{repo}/lib/{id}/{file}'
+
+
 VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
 ID_PATTERN = re.compile(r"^[a-z0-9-]+$")
 VERSION_CONSTRAINT_PATTERN = re.compile(
@@ -31,12 +39,11 @@ VERSION_CONSTRAINT_PATTERN = re.compile(
 )
 
 
-@dataclass
-class DependencyMap:
-    dependencies: dict[str, str] = field(default_factory=dict)
+class DependencyMap(dict[str, str]):
+    def __init__(self, dependencies: dict[str, str] | None = None):
+        super().__init__(dependencies or {})
 
-    def __post_init__(self):
-        for name, version in self.dependencies.items():
+        for name, version in self.items():
             if not ID_PATTERN.match(name):
                 raise ValueError(f"Invalid dependency name: {name}")
 
@@ -45,7 +52,10 @@ class DependencyMap:
 
 
 @dataclass
-class PackageManifest:
+class Package:
+    internal_repo: str
+    internal_package: str
+
     name: str
     id: str
     version: str
@@ -74,38 +84,17 @@ class PackageManifest:
             if not parsed.scheme or not parsed.netloc:
                 raise ValueError(f"Invalid homepage URI: {self.homepage}")
 
-
-class PackageException(Exception):
-    def __init__(self, package: str, message: str):
-        super().__init__(f"{package}: {message}")
-
-
-class Package:
-    def __init__(self, name, id, version, author, bin=None, homepage=None, requires=None, repo=BPL_REPO):
-        self.name = name
-        self.id = id
-        self.version = version
-        self.author = author
-        self.bin_uri = f'https://raw.githubusercontent.com/{repo}/lib/{id}/{bin}' if bin is not None else None
-        self.homepage = homepage
-        self.requires = requires if requires is not None else []
-        self.repo = repo
-
-    def __repr__(self):
-        return f"BPL_Package(name={self.name}, version={self.version}, author={self.author}, bin={self.bin_uri}, homepage={self.homepage}, requires={self.requires})"
-
     @staticmethod
     def load_json(package, data, repo):
-        return Package(
-            name=data['name'],
-            id=package,
-            version=data['version'],
-            author=data['author'],
-            bin=data.get('bin'),
-            homepage=data.get('homepage'),
-            requires=data.get('requires', []),
-            repo=repo
-        )
+
+        kwargs = {
+            key.name: data[key.name]
+            for key in fields(Package)
+            if key.name in data
+        }
+        kwargs["internal_repo"] = repo
+        kwargs["internal_package"] = package
+        return Package(**kwargs)
 
     @staticmethod
     def fetch(package: str, repo):
@@ -117,6 +106,11 @@ class Package:
             raise PackageException(package, "does not exist or could not be found")
         else:
             raise PackageException(package, f"something went wrong. HTTP {res.status_code} while fetching package data")
+
+
+class PackageException(Exception):
+    def __init__(self, package: str, message: str):
+        super().__init__(f"{package}: {message}")
 
 
 class BadOSPackageManagerCommand(Command):
@@ -137,31 +131,30 @@ class BadOSPackageManagerCommand(Command):
         elif args.action == 'remove':
             self.__remove(args)
 
-
-    def __process_package(self, _pkg, repo: str):
+    def __discover_package_dependencies(self, _pkg, repo: str) -> list[str]:
         try:
             pkg = Package.fetch(_pkg, repo)
-            print(f"\t{_pkg}: found '{pkg.name}' v{pkg.version}")
+            self.shell.print(f"\t{_pkg}: found '{pkg.name}' v{pkg.version}{NL}")
             self.packages.append(pkg)
-            return pkg.requires if pkg.requires else []
+            return pkg.dependencies.keys() if pkg.dependencies else []
         except PackageException as e:
-            print('\t' + str(e))
+            self.shell.print('\t' + str(e) + NL)
             return []
 
     def __install(self, args):
-        print("Discovering packages and dependencies...")
+        self.shell.print("Discovering packages and dependencies..." + NL)
 
         deps = []
         for package in args.packages:
-            deps.extend(self.__process_package(package, args.repo))
+            deps.extend(self.__discover_package_dependencies(package, args.repo))
 
         while deps:
             new_deps = []
             for package in deps:
-                new_deps.extend(self.__process_package(package, args.repo))
+                new_deps.extend(self.__discover_package_dependencies(package, args.repo))
             deps = new_deps
 
-        print()
+        self.shell.print(NL)
 
         if not args.yes:
             while (s := input(
@@ -169,24 +162,45 @@ class BadOSPackageManagerCommand(Command):
                 'y', 'n'}:
                 pass
             if s == 'n':
-                exit()
+                raise ValueError("user exited program with code 0")
 
         for package in self.packages:
-            print(
-                f"Installing {package.id}-{package.version} ({package.name})")
-
-            if package.bin_uri is None:
+            if not VersionSelector(package.shellVersion).matches(bdsh.__version__):
+                self.shell.print(
+                    f"Package {package.id}-{package.version} ({package.name}) is not compatible with this version of BadOS!{NL}")
                 continue
 
-            res = requests.get(package.bin_uri)
+            self.shell.print(f"Installing {package.id}-{package.version} ({package.name}){NL}")
 
-            if res.status_code != 200:
-                print(
-                    f"\tHTTP {res.status_code}; could not access package binaries")
-                continue
+            os.makedirs(bdsh.get_shell_path("exec", package.id), exist_ok=True)
 
-            with open(get_shell_path("exec", package.id), 'wb') as f:
-                f.write(res.content)
+            for bin_name, bin_repo_name in package.binaries.items():
+                res = requests.get(get_bpl_uri(package.internal_repo, package.id, bin_repo_name))
+
+                if res.status_code != 200:
+                    self.shell.print(
+                        f"\tHTTP {res.status_code}; could not access binary '{bin_name}' for package '{package.id}'{NL}")
+                    continue
+
+                with open(bdsh.get_shell_path("exec", package.id, bin_name), 'wb') as f:
+                    f.write(res.content)
+
+            if package.pythonDependencies:
+                self.shell.print(f"Installing Python dependencies for {package.id}{NL}")
+                for dep, ver in package.pythonDependencies.items():
+                    print_task(f"Install {dep}, {ver}")
+                    install_python_package(f"{dep}{VersionSelector(ver).to_pip()}")
+
+            for i, script in enumerate(package.setupScripts):
+                res = requests.get(get_bpl_uri(package.internal_repo, package.id, script))
+
+                if res.status_code != 200:
+                    self.shell.print(
+                        f"\tHTTP {res.status_code}; could not access setup script '{script}' for package '{package.id}'{NL}")
+                    continue
+
+                self.shell.print(f"Executing setup script ({i}/{len(package.setupScripts)})...")
+                exec(res.content)
 
     def __remove(self, args):
         if not args.yes:
@@ -195,14 +209,14 @@ class BadOSPackageManagerCommand(Command):
                 'y', 'n'}:
                 pass
             if s == 'n':
-                exit()
+                raise ValueError("user exited program with code 0")
 
         for package in args.packages:
-            print(f"Deleting {package}")
-            path = get_shell_path("exec", package)
+            self.shell.print(f"Deleting {package}{NL}")
+            path = bdsh.get_shell_path("exec", package)
 
             if not os.path.exists(path):
-                print("\tCould not find package, skipping")
+                self.shell.print("\tCould not find package, skipping" + NL)
                 continue
 
             os.remove(path)

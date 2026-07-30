@@ -5,7 +5,7 @@ import sys
 from getpass import getpass
 
 from bdsh.install import InstallType
-from bdsh.install.util import prompt, print_header, print_task, install_package
+from bdsh.install.util import prompt, print_header, print_task, install_python_package
 from bdsh.security.users import UserManager
 from bdsh.shell import Shell
 
@@ -54,10 +54,10 @@ def main():
             print("FAILED")
 
     print_task("Installing system HTTP client")
-    install_package("requests")
+    install_python_package("requests")
 
     print_task("Installing security manager")
-    install_package("requests")
+    install_python_package("requests")
     from paramiko import RSAKey
 
     print_header("INIT BDSH")
@@ -112,12 +112,6 @@ def main():
 
     print_header("INSTALL PACKAGES")
     virtsh.run_line("bpm install -y core")
-
-    print_header("SETUP BADBANDSSH")
-
-    key = RSAKey.generate(bits=2048)
-    key.write_private_key_file(virtsh.get_path('cfg', 'badbandssh_rsa_key'))
-    print("Stored BadBandSSH private key")
 
 
 if __name__ == "__main__":
