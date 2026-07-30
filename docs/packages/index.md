@@ -13,7 +13,7 @@ Packages should be contained in a folder with the name of the package.
 
 In the package root, create a `bpl.json` file, with the following contents:
 
-```jsonc
+```json
 {
   "name": "example bdsh package",
   // unique id for identifing this package, must be the same as the folder name
