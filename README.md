@@ -13,12 +13,11 @@ python3 -m bdsh.install
 
 After completing setup, bdsh should be good to go!
 
-
 ## Installation (Manual)
 
 1. **Download the latest release**
 
-    Or, you can directly download the `bdsh` module from PyPI.
+   Or, you can directly download the `bdsh` module from PyPI.
 
 2. **Setup bdsh:**
 
@@ -26,15 +25,13 @@ After completing setup, bdsh should be good to go!
     python3 -m bdsh.install
     ```
 
-    Follow the on-screen instructions.
+   Follow the on-screen instructions.
 
-    Once the `/bdsh` directory and your configs are prepared, you can start bdsh with `bdsh` to launch the interactive shell.
+   Once the `/bdsh` directory and your configs are prepared, you can start bdsh with `bdsh` to launch the interactive
+   shell.
 
 3. **Launch bdsh:**
 
     ```sh
     bdsh
     ```
-
-> [!NOTE]
-> This may change depending on how you created your launcher scripts.

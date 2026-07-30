@@ -38,6 +38,3 @@ After completing setup, bdsh should be good to go!
     ```sh
     bdsh
     ```
-
-   > #### ℹ️ Note
-   > This may change depending on how you created your launcher scripts.

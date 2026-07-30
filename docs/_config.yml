@@ -29,3 +29,14 @@ defaults:
       type: pages
     values:
       layout: default
+
+callouts:
+  warning:
+    title: Warning
+    color: red
+  headsup:
+    title: Heads Up!
+    color: yellow
+  tip:
+    title: Tip
+    color: blue
