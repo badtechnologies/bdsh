@@ -1,6 +1,44 @@
-remote_theme: pages-themes/cayman@v0.2.0
+remote_theme: just-the-docs/just-the-docs
 plugins:
-- jekyll-remote-theme
+  - jekyll-remote-theme
+  - jekyll-seo-tag
 
-title: BDSH Documentation
+title: bdsh
 description: Documentation for BadOS Dynamic Shell and its components
+logo: "/assets/img/logo.svg"
+favicon_ico: "/assets/img/favicon.svg"
+url: https://badtechnologies.github.io
+baseurl: /bdsh
+
+footer_custom: _includes/footer_custom.html
+
+search_enabled: true
+heading_anchors: true
+nav_enabled: true
+
+aux_links:
+  "GitHub":
+    - "https://github.com/badtechnologies/bdsh"
+  "BPL":
+    - "https://bplportal.vercel.app"
+aux_links_new_tab: true
+
+color_scheme: badtech
+
+defaults:
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: default
+
+callouts:
+  warning:
+    title: Warning
+    color: red
+  headsup:
+    title: Heads Up!
+    color: yellow
+  tip:
+    title: Tip
+    color: blue

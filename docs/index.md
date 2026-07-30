@@ -1,13 +1,9 @@
+---
+title: Home
+nav_order: 1
+---
+
 # BadOS Dynamic Shell (bdsh)
-
-## Table of Contents
-
-- [BadOS Dynamic Shell Package Library (bpl)](bpl.md)
-- [BadOS Package Manager (bpm)](bpm.md)
-- [BadBandSSH (bssh)](bssh.md)
-- [BDSH Commands](commands.md)
-- [System File Structure](file-structure.md)
-- [BadOS Dynamic Shell (bdsh)](index.md)
 
 ## Quick Install
 
@@ -42,6 +38,3 @@ After completing setup, bdsh should be good to go!
     ```sh
     bdsh
     ```
-
-   > #### ℹ️ Note
-   > This may change depending on how you created your launcher scripts.
