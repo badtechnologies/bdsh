@@ -1,4 +1,7 @@
-[❮ Back](.)
+---
+title: Commands
+nav_order: 2
+---
 
 # BDSH Commands
 
