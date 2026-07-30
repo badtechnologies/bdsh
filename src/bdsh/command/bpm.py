@@ -199,8 +199,9 @@ class BadOSPackageManagerCommand(Command):
                         f"\tHTTP {res.status_code}; could not access setup script '{script}' for package '{package.id}'{NL}")
                     continue
 
-                self.shell.print(f"Executing setup script ({i}/{len(package.setupScripts)})...")
-                exec(res.content)
+                self.shell.print(f"Executing setup script ({i}/{len(package.setupScripts)})...{NL}")
+                exec(res.content.decode())
+            self.shell.print("Done!" + NL)
 
     def __remove(self, args):
         if not args.yes:
