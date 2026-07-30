@@ -1,12 +1,18 @@
 import argparse
 import json
 import os
-from typing import List
+import re
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
 import requests
 
 from bdsh import get_shell_path
 from bdsh.command import Command
+
+if TYPE_CHECKING:
+    from bdsh.shell import Shell
 
 BPL_REPO = 'badtechnologies/bpl/main'
 
@@ -17,6 +23,56 @@ parser.add_argument('-y', '--yes', action='store_true',
                     help='assume "yes" as the answer to all prompts and run non-interactively')
 parser.add_argument('-r', '--repo', default=BPL_REPO,
                     help='set repo to download from, in the format "owner/repo/branch", must be on GitHub')
+
+VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
+ID_PATTERN = re.compile(r"^[a-z0-9-]+$")
+VERSION_CONSTRAINT_PATTERN = re.compile(
+    r"^(\*|\^?\d+\.\d+\.\d+|~\d+\.\d+\.\\d+|>=?\d+\.\d+\.\d+|<=?\d+\.\d+\.\d+)$"
+)
+
+
+@dataclass
+class DependencyMap:
+    dependencies: dict[str, str] = field(default_factory=dict)
+
+    def __post_init__(self):
+        for name, version in self.dependencies.items():
+            if not ID_PATTERN.match(name):
+                raise ValueError(f"Invalid dependency name: {name}")
+
+            if not VERSION_CONSTRAINT_PATTERN.match(version):
+                raise ValueError(f"Invalid dependency version constraint: {version}")
+
+
+@dataclass
+class PackageManifest:
+    name: str
+    id: str
+    version: str
+    author: str
+    shellVersion: str
+
+    binaries: dict[str, str] = field(default_factory=dict)
+    setupScripts: list[str] = field(default_factory=list)
+    homepage: str | None = None
+    license: str | None = None
+    dependencies: DependencyMap | None = None
+    pythonDependencies: DependencyMap | None = None
+
+    def __post_init__(self):
+        if not ID_PATTERN.match(self.id):
+            raise ValueError(f"Invalid id: {self.id}")
+
+        if not VERSION_PATTERN.match(self.version):
+            raise ValueError(f"Invalid version: {self.version}")
+
+        if not VERSION_CONSTRAINT_PATTERN.match(self.shellVersion):
+            raise ValueError(f"Invalid shellVersion: {self.shellVersion}")
+
+        if self.homepage:
+            parsed = urlparse(self.homepage)
+            if not parsed.scheme or not parsed.netloc:
+                raise ValueError(f"Invalid homepage URI: {self.homepage}")
 
 
 class PackageException(Exception):
@@ -64,18 +120,12 @@ class Package:
 
 
 class BadOSPackageManagerCommand(Command):
-    def execute(self, args: List[str]):
-        packages: List[Package] = []
+    def __init__(self, shell: Shell):
+        super().__init__(shell)
+        self.packages: list[Package] = []
 
-        def process_package(_pkg, repo: str):
-            try:
-                pkg = Package.fetch(_pkg, repo)
-                print(f"\t{_pkg}: found '{pkg.name}' v{pkg.version}")
-                packages.append(pkg)
-                return pkg.requires if pkg.requires else []
-            except PackageException as e:
-                print('\t' + str(e))
-                return []
+    def execute(self, args: list[str]):
+        self.packages.clear()
 
         try:
             args = parser.parse_args(args[1:])
@@ -83,63 +133,79 @@ class BadOSPackageManagerCommand(Command):
             return
 
         if args.action == 'install':
-            print("Discovering packages and dependencies...")
-
-            deps = []
-            for package in args.packages:
-                deps.extend(process_package(package, args.repo))
-
-            while deps:
-                new_deps = []
-                for package in deps:
-                    new_deps.extend(process_package(package, args.repo))
-                deps = new_deps
-
-            print()
-
-            if not args.yes:
-                while (s := input(
-                        f"Install {len(packages)} package(s): {' '.join([p.id for p in packages])}? [Y/n] " or 'n').lower()) not in {
-                    'y', 'n'}:
-                    pass
-                if s == 'n':
-                    exit()
-
-            for package in packages:
-                print(
-                    f"Installing {package.id}-{package.version} ({package.name})")
-
-                if package.bin_uri is None:
-                    continue
-
-                res = requests.get(package.bin_uri)
-
-                if res.status_code != 200:
-                    print(
-                        f"\tHTTP {res.status_code}; could not access package binaries")
-                    continue
-
-                with open(get_shell_path("exec", package.id), 'wb') as f:
-                    f.write(res.content)
-
+            self.__install(args)
         elif args.action == 'remove':
-            if not args.yes:
-                while (s := input(
-                        f"Remove {len(args.packages)} package(s): {' '.join(args.packages)}? [Y/n] " or 'n').lower()) not in {
-                    'y', 'n'}:
-                    pass
-                if s == 'n':
-                    exit()
+            self.__remove(args)
 
-            for package in args.packages:
-                print(f"Deleting {package}")
-                path = get_shell_path("exec", package)
 
-                if not os.path.exists(path):
-                    print("\tCould not find package, skipping")
-                    continue
+    def __process_package(self, _pkg, repo: str):
+        try:
+            pkg = Package.fetch(_pkg, repo)
+            print(f"\t{_pkg}: found '{pkg.name}' v{pkg.version}")
+            self.packages.append(pkg)
+            return pkg.requires if pkg.requires else []
+        except PackageException as e:
+            print('\t' + str(e))
+            return []
 
-                os.remove(path)
+    def __install(self, args):
+        print("Discovering packages and dependencies...")
+
+        deps = []
+        for package in args.packages:
+            deps.extend(self.__process_package(package, args.repo))
+
+        while deps:
+            new_deps = []
+            for package in deps:
+                new_deps.extend(self.__process_package(package, args.repo))
+            deps = new_deps
+
+        print()
+
+        if not args.yes:
+            while (s := input(
+                    f"Install {len(self.packages)} package(s): {' '.join([p.id for p in self.packages])}? [Y/n] " or 'n').lower()) not in {
+                'y', 'n'}:
+                pass
+            if s == 'n':
+                exit()
+
+        for package in self.packages:
+            print(
+                f"Installing {package.id}-{package.version} ({package.name})")
+
+            if package.bin_uri is None:
+                continue
+
+            res = requests.get(package.bin_uri)
+
+            if res.status_code != 200:
+                print(
+                    f"\tHTTP {res.status_code}; could not access package binaries")
+                continue
+
+            with open(get_shell_path("exec", package.id), 'wb') as f:
+                f.write(res.content)
+
+    def __remove(self, args):
+        if not args.yes:
+            while (s := input(
+                    f"Remove {len(args.packages)} package(s): {' '.join(args.packages)}? [Y/n] " or 'n').lower()) not in {
+                'y', 'n'}:
+                pass
+            if s == 'n':
+                exit()
+
+        for package in args.packages:
+            print(f"Deleting {package}")
+            path = get_shell_path("exec", package)
+
+            if not os.path.exists(path):
+                print("\tCould not find package, skipping")
+                continue
+
+            os.remove(path)
 
     def help(self) -> str:
         return "re-run this program with the `--help` arg for the manual page"
