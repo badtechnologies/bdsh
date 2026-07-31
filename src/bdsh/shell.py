@@ -1,12 +1,14 @@
 import os
 import subprocess
 import sys
+from contextlib import redirect_stdout
 from getpass import getpass
 from typing import TextIO
 
 from bdsh import NL, __version__, get_shell_path, ROOT_DIR
 from bdsh.command.commands import register_commands
 from bdsh.security.users import User, UserManager
+
 
 class Shell:
     def __init__(self, stdout: TextIO | None, stdin: TextIO | None, **is_ssh: bool):
@@ -49,7 +51,8 @@ class Shell:
             self.run_line(self.definitions[args[0]] + " " + ' '.join(args[1:]))
         elif args[0] in self.commands:
             try:
-                self.commands[args[0]].execute(args)
+                with redirect_stdout(self.stdout):
+                    self.commands[args[0]].execute(args)
             except Exception as e:
                 self.print(f"{args[0]}: {e}")
         elif os.path.exists(binary := self.get_path("exec", args[0])):

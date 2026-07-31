@@ -4,6 +4,7 @@ from typing import List, TYPE_CHECKING, Dict
 from bdsh import NL
 from bdsh.command import Command, AnonymousCommand
 from bdsh.command.bpm import BadOSPackageManagerCommand
+from bdsh.command.net import NetCommand, HostnameCommand, PingCommand
 
 if TYPE_CHECKING:
     from bdsh.shell import Shell
@@ -34,7 +35,8 @@ class ListDirectoryCommand(Command):
         try:
             path = self.shell.get_path(args[1]) if len(args) > 1 else self.shell.path
             items = os.listdir(path)
-            self.shell.print('\t'.join([item + '/' if os.path.isdir(os.path.join(path, item)) else item for item in items]))
+            self.shell.print(
+                '\t'.join([item + '/' if os.path.isdir(os.path.join(path, item)) else item for item in items]))
         except FileNotFoundError:
             raise FileNotFoundError(f"{args[1]}: does not exist")
 
@@ -108,5 +110,8 @@ def register_commands(shell: Shell) -> Dict[str, Command]:
         "cwd": AnonymousCommand(shell, lambda _: shell.print(shell.cwd()), ""),
         "go": GoCommand(shell),
         "peek": PeekCommand(shell),
-        "bpm": BadOSPackageManagerCommand(shell)
+        "bpm": BadOSPackageManagerCommand(shell),
+        "net": NetCommand(shell),
+        "hostname": HostnameCommand(shell),
+        "ping": PingCommand(shell)
     }
