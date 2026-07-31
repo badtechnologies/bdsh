@@ -1,4 +1,8 @@
+import argparse
+import socket
 from typing import List
+
+from icmplib import ping
 
 from bdsh.command import Command
 from bdsh.network import NetworkManager
@@ -43,3 +47,36 @@ class HostnameCommand(Command):
 
     def help(self) -> str:
         return "displays the current system hostname"
+
+
+class PingCommand(Command):
+    parser = argparse.ArgumentParser(color=False)
+    parser.add_argument('host', type=str, help='host to ping')
+    parser.add_argument('-c', '--count', type=int, default=4, help='amount of packets to send')
+    parser.add_argument('-t', '--timeout', type=int, default=2, help='seconds to timeout')
+    parser.add_argument('-s', '--size', type=int, default=56, help='bytes to send')
+
+    def execute(self, args: List[str]):
+        try:
+            args = self.parser.parse_args(args[1:])
+        except SystemExit:
+            return
+
+        try:
+            host = NetworkManager.resolve(args.host)
+        except socket.gaierror:
+            raise ValueError(f"failed to resolve host: \"{args.host}\"")
+
+        print(f"pinging {args.host} ({host}) with {args.size} bytes")
+        received = 0
+        for i in range(args.count):
+            print(f"icmp_seq {i}... ", flush=True, end="")
+            ok = ping(args.host, count=1, timeout=args.timeout, payload_size=args.size, privileged=False)
+            print("OK" if ok else "TIMEOUT")
+            if ok: received += 1
+
+        print(
+            f"{args.count} packets sent, {received} packets received, {round((1 - received / args.count) * 100, 1)}% packet loss")
+
+    def help(self) -> str:
+        return self.parser.format_help()
