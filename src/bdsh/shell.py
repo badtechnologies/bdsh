@@ -5,7 +5,7 @@ from contextlib import redirect_stdout
 from getpass import getpass
 from typing import TextIO
 
-from bdsh import NL, __version__, get_shell_path, ROOT_DIR
+from bdsh import NL, __version__, get_shell_path
 from bdsh.command.commands import register_commands
 from bdsh.user import UserManager
 from bdsh.util.filesystem import chdir
@@ -65,8 +65,7 @@ class Shell:
             self.print(f"Invalid command: {args[0]}")
 
     def cwd(self):
-        path = os.path.relpath(self.path, ROOT_DIR)
-        return "/" if path == "." else "/" + path
+        return self.path
 
     def get_prompt(self):
         return f"{NL}{"~" if self.path == self.user_manager.home else self.cwd()}$ "
