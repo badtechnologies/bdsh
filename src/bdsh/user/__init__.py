@@ -24,10 +24,8 @@ class User:
 
 
 class UserManager:
-    def __init__(self, path: str):
-        self.path = path
-        self.__current_user: User | None = None
-        self.home = None
+    def __init__(self, userman_path: str):
+        self.path = userman_path
 
         try:
             self.users = self.load()
@@ -76,24 +74,13 @@ class UserManager:
 
         self.users.append(User(username, hasher.hash(password)))
 
-    def login(self, username: str, password: str) -> bool:
+    def get_user_by_credentials(self, username: str, password: str) -> User | None:
         for user in self.users:
             if user.username != username: continue
 
             result = user.try_login(password)
             if not result: continue
 
-            self.set_current_user(user)
-            return True
+            return user
 
-        return False
-
-    def is_logged_in(self):
-        return self.__current_user is not None
-
-    def get_current_user(self):
-        return self.__current_user
-
-    def set_current_user(self, user: User):
-        self.__current_user = user
-        self.home = get_shell_path("prf", self.__current_user.username)
+        return None
