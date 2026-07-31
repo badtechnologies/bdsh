@@ -70,7 +70,7 @@ class Shell:
         self.path = os.path.abspath(path)
 
     def get_prompt(self):
-        return f"{NL}{"~" if self.path == self.user_manager.home else self.cwd()}$ "
+        return f"{NL}{self.user_manager.get_current_user().username}:{"~" if self.path == self.user_manager.home else self.cwd()}$ "
 
     def start(self):
         # ensure session is valid
