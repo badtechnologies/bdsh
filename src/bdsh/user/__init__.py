@@ -27,6 +27,7 @@ class UserManager:
     def __init__(self, path: str):
         self.path = path
         self.__current_user: User | None = None
+        self.home = None
 
         try:
             self.users = self.load()
@@ -82,7 +83,7 @@ class UserManager:
             result = user.try_login(password)
             if not result: continue
 
-            self.__current_user = user
+            self.set_current_user(user)
             return True
 
         return False
@@ -92,3 +93,7 @@ class UserManager:
 
     def get_current_user(self):
         return self.__current_user
+
+    def set_current_user(self, user: User):
+        self.__current_user = user
+        self.home = get_shell_path("prf", self.__current_user.username)

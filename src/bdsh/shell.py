@@ -18,7 +18,6 @@ class Shell:
         self.readchar = lambda: self.stdin.read(1)
         self.is_ssh = is_ssh
         self.path = Shell.get_path()
-        self.cwd = lambda: os.path.relpath(self.path, ROOT_DIR).replace('.', '/', 1)
 
         self.header = f"BadOS Dynamic Shell (v{__version__}) {'(BadBandSSH)' if is_ssh else ''}{NL}(c) Bad Technologies. All rights reserved.{NL}"
 
@@ -64,8 +63,11 @@ class Shell:
         else:
             self.print(f"Invalid command: {args[0]}")
 
+    def cwd(self):
+        return os.path.relpath(self.path, ROOT_DIR).replace('.', '/', 1)
+
     def get_prompt(self):
-        return f"{NL}{self.cwd()}$ "
+        return f"{NL}{"~" if self.path == self.user_manager.home else self.cwd()}$ "
 
     @staticmethod
     def get_path(*paths: str):
