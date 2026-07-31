@@ -36,7 +36,7 @@ class TerminalIO(ABC):
         self.write(text)
         self.flush()
 
-    def println(self, text):
+    def println(self, text=""):
         self.write(text + NL)
         self.flush()
 
