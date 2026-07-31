@@ -4,19 +4,22 @@ from bdsh import get_shell_path
 from bdsh.user import UserManager, User
 
 
-def shell_login(std) -> User:
-    user_manager = UserManager(get_shell_path("cfg", "userman"))
-    user = None
+class BadLoginService:
+    def __init__(self):
+        self.user_manager = UserManager(get_shell_path("cfg", "userman"))
 
-    while not user:
-        try:
-            username = input("Username: ")
-            password = getpass("Password: ")
-            user = user_manager.get_user_by_credentials(username, password)
-            if not user:
-                print("\nInvalid login")
-        except KeyboardInterrupt:
-            print()
-            continue
+    def shell_login(self) -> User:
+        user = None
 
-    return user
+        while not user:
+            try:
+                username = input("Username: ")
+                password = getpass("Password: ")
+                user = self.user_manager.get_user_by_credentials(username, password)
+                if not user:
+                    print("\nInvalid login")
+            except KeyboardInterrupt:
+                print()
+                continue
+
+        return user
