@@ -34,7 +34,7 @@ class HelpCommand(Command):
 class ListDirectoryCommand(Command):
     def execute(self, args: List[str]):
         try:
-            path = self.shell.get_path(args[1]) if len(args) > 1 else self.shell.path
+            path = args[1] if len(args) > 1 else self.shell.path
             items = os.listdir(path)
             self.shell.print(
                 '\t'.join([item + '/' if os.path.isdir(os.path.join(path, item)) else item for item in items]))
@@ -77,8 +77,8 @@ class ThrowCommand(Command):
 
 class GoCommand(Command):
     def execute(self, args: List[str]):
-        arg = self.shell.user_manager.home if args[1] == "~" else os.path.join(self.shell.path, args[1])
-        if os.path.exists(path := self.shell.get_path(arg)):
+        path = self.shell.user_manager.home if args[1] == "~" else os.path.join(self.shell.path, args[1])
+        if os.path.exists(path):
             chdir(self.shell, path)
         else:
             raise FileNotFoundError(f"{args[1]}: no such file or folder")
