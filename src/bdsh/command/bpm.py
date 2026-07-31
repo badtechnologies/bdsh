@@ -3,23 +3,22 @@ import json
 import os
 import re
 from dataclasses import dataclass, field, fields
-from typing import TYPE_CHECKING, Callable, Protocol, Literal, cast
+from typing import Callable, Literal, cast, TYPE_CHECKING
 from urllib.parse import urlparse
 
 import requests
 
 import bdsh
-from bdsh import NL
 from bdsh.command import Command
 from bdsh.install.util import install_python_package, print_task
 from bdsh.util.version import VersionSelector
 
 if TYPE_CHECKING:
-    from bdsh.shell import Shell
+    from bdsh.session import Session
 
 BPL_REPO = 'badtechnologies/bpl/main'
 
-parser = argparse.ArgumentParser(description='BadOS Package Manager')
+parser = argparse.ArgumentParser(description='BadOS Package Manager', color=False, add_help=False)
 parser.add_argument('action', type=str, choices=['install', 'remove'], help='action to perform')
 parser.add_argument('packages', nargs='+', type=str, help='packages to manage')
 parser.add_argument('-y', '--yes', action='store_true',
@@ -121,8 +120,8 @@ class PackageException(Exception):
 
 
 class BadOSPackageManagerCommand(Command):
-    def __init__(self, shell: Shell):
-        super().__init__(shell)
+    def __init__(self, session: Session):
+        super().__init__(session)
         self.packages: list[Package] = []
         self.handlers: dict[str, Callable[[BpmArgs], None]] = {
             "install": self.__install,
@@ -142,15 +141,15 @@ class BadOSPackageManagerCommand(Command):
     def __discover_package_dependencies(self, _pkg, repo: str) -> list[str]:
         try:
             pkg = Package.fetch(_pkg, repo)
-            self.shell.print(f"\t{_pkg}: found '{pkg.name}' v{pkg.version}{NL}")
+            self.session.io.println(f"\t{_pkg}: found '{pkg.name}' v{pkg.version}")
             self.packages.append(pkg)
             return pkg.dependencies.keys() if pkg.dependencies else []
         except PackageException as e:
-            self.shell.print('\t' + str(e) + NL)
+            self.session.io.println('\t' + str(e))
             return []
 
     def __install(self, args: BpmArgs):
-        self.shell.print("Discovering packages and dependencies..." + NL)
+        self.session.io.println("Discovering packages and dependencies...")
 
         deps = []
         for package in args.packages:
@@ -162,7 +161,7 @@ class BadOSPackageManagerCommand(Command):
                 new_deps.extend(self.__discover_package_dependencies(package, args.repo))
             deps = new_deps
 
-        self.shell.print(NL)
+        self.session.io.println()
 
         if not args.yes:
             while (s := input(
@@ -174,11 +173,11 @@ class BadOSPackageManagerCommand(Command):
 
         for package in self.packages:
             if not VersionSelector(package.shellVersion).matches(bdsh.__version__):
-                self.shell.print(
-                    f"Package {package.id}-{package.version} ({package.name}) is not compatible with this version of BadOS!{NL}")
+                self.session.io.println(
+                    f"Package {package.id}-{package.version} ({package.name}) is not compatible with this version of BadOS!")
                 continue
 
-            self.shell.print(f"Installing {package.id}-{package.version} ({package.name}){NL}")
+            self.session.io.println(f"Installing {package.id}-{package.version} ({package.name})")
 
             os.makedirs(bdsh.get_shell_path("exec", package.id), exist_ok=True)
 
@@ -186,15 +185,15 @@ class BadOSPackageManagerCommand(Command):
                 res = requests.get(get_bpl_uri(package.internal_repo, package.id, bin_repo_name))
 
                 if res.status_code != 200:
-                    self.shell.print(
-                        f"\tHTTP {res.status_code}; could not access binary '{bin_name}' for package '{package.id}'{NL}")
+                    self.session.io.println(
+                        f"\tHTTP {res.status_code}; could not access binary '{bin_name}' for package '{package.id}'")
                     continue
 
                 with open(bdsh.get_shell_path("exec", package.id, bin_name), 'wb') as f:
                     f.write(res.content)
 
             if package.pythonDependencies:
-                self.shell.print(f"Installing Python dependencies for {package.id}{NL}")
+                self.session.io.print(f"Installing Python dependencies for {package.id}")
                 for dep, ver in package.pythonDependencies.items():
                     print_task(f"Install {dep}, {ver}")
                     install_python_package(f"{dep}{VersionSelector(ver).to_pip()}")
@@ -203,13 +202,13 @@ class BadOSPackageManagerCommand(Command):
                 res = requests.get(get_bpl_uri(package.internal_repo, package.id, script))
 
                 if res.status_code != 200:
-                    self.shell.print(
-                        f"\tHTTP {res.status_code}; could not access setup script '{script}' for package '{package.id}'{NL}")
+                    self.session.io.println(
+                        f"\tHTTP {res.status_code}; could not access setup script '{script}' for package '{package.id}'")
                     continue
 
-                self.shell.print(f"Executing setup script ({i}/{len(package.setupScripts)})...{NL}")
+                self.session.io.println(f"Executing setup script ({i}/{len(package.setupScripts)})...")
                 exec(res.content.decode())
-            self.shell.print("Done!" + NL)
+            self.session.io.println("Done!")
 
     def __remove(self, args: BpmArgs):
         if not args.yes:
@@ -221,14 +220,14 @@ class BadOSPackageManagerCommand(Command):
                 raise ValueError("user exited program with code 0")
 
         for package in args.packages:
-            self.shell.print(f"Deleting {package}{NL}")
+            self.session.io.println(f"Deleting {package}")
             path = bdsh.get_shell_path("exec", package)
 
             if not os.path.exists(path):
-                self.shell.print("\tCould not find package, skipping" + NL)
+                self.session.io.println("\tCould not find package, skipping")
                 continue
 
             os.remove(path)
 
     def help(self) -> str:
-        return "re-run this program with the `--help` arg for the manual page"
+        return parser.format_help()
