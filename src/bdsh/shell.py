@@ -8,7 +8,6 @@ from typing import TextIO
 from bdsh import NL, __version__, get_shell_path
 from bdsh.command.commands import register_commands
 from bdsh.user import UserManager
-from bdsh.util.filesystem import chdir
 
 
 class Shell:
@@ -67,6 +66,9 @@ class Shell:
     def cwd(self):
         return self.path
 
+    def chdir(self, path):
+        self.path = os.path.abspath(path)
+
     def get_prompt(self):
         return f"{NL}{"~" if self.path == self.user_manager.home else self.cwd()}$ "
 
@@ -94,7 +96,7 @@ class Shell:
                 continue
 
         self.print(f"Welcome, {self.user_manager.get_current_user().username}!{NL}")
-        chdir(self, self.user_manager.home)
+        self.chdir(self.user_manager.home)
 
         # start processing commands
         self.print(self.get_prompt())
