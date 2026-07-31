@@ -16,7 +16,7 @@ from bdsh.util.version import VersionSelector
 
 BPL_REPO = 'badtechnologies/bpl/main'
 
-parser = argparse.ArgumentParser(description='BadOS Package Manager')
+parser = argparse.ArgumentParser(description='BadOS Package Manager', color=False, add_help=False)
 parser.add_argument('action', type=str, choices=['install', 'remove'], help='action to perform')
 parser.add_argument('packages', nargs='+', type=str, help='packages to manage')
 parser.add_argument('-y', '--yes', action='store_true',
@@ -228,4 +228,4 @@ class BadOSPackageManagerCommand(Command):
             os.remove(path)
 
     def help(self) -> str:
-        return "re-run this program with the `--help` arg for the manual page"
+        return parser.format_help()
