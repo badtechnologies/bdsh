@@ -1,13 +1,18 @@
 from bdsh import get_shell_path
+from bdsh.io import TerminalIO
 from bdsh.user import User
 
 
-class SessionManager:
-    def __init__(self, user: User = None):
+class Session:
+    def __init__(self, terminal: TerminalIO, user: User):
+        if not user:
+            raise ValueError("session: cannot create userless session")
+
         self.__current_user = None
         self.userhome = None
+        self.terminal = terminal
 
-        if user: self.set_user(user)
+        self.set_user(user)
 
     def is_logged_in(self):
         return self.__current_user is not None
