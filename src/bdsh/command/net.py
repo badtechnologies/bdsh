@@ -35,7 +35,7 @@ class NetCommand(Command):
                     elif addr.ptp:
                         msg += f" ptp {addr.ptp}"
 
-            print(msg)
+            self.session.io.println(msg)
 
     def help(self) -> str:
         return "displays network interface info, specify an interface with a second argument"
@@ -43,14 +43,14 @@ class NetCommand(Command):
 
 class HostnameCommand(Command):
     def execute(self, args: List[str]):
-        print(NetworkManager.hostname())
+        self.session.io.println(NetworkManager.hostname())
 
     def help(self) -> str:
         return "displays the current system hostname"
 
 
 class PingCommand(Command):
-    parser = argparse.ArgumentParser(color=False)
+    parser = argparse.ArgumentParser(color=False, add_help=False)
     parser.add_argument('host', type=str, help='host to ping')
     parser.add_argument('-c', '--count', type=int, default=4, help='amount of packets to send')
     parser.add_argument('-t', '--timeout', type=int, default=2, help='seconds to timeout')
@@ -67,15 +67,15 @@ class PingCommand(Command):
         except socket.gaierror:
             raise ValueError(f"failed to resolve host: \"{args.host}\"")
 
-        print(f"pinging {args.host} ({host}) with {args.size} bytes")
+        self.session.io.println(f"pinging {args.host} ({host}) with {args.size} bytes")
         received = 0
         for i in range(args.count):
-            print(f"icmp_seq {i}... ", flush=True, end="")
+            self.session.io.print(f"icmp_seq {i}... ")
             ok = ping(args.host, count=1, timeout=args.timeout, payload_size=args.size, privileged=False)
-            print("OK" if ok else "TIMEOUT")
+            self.session.io.println("OK" if ok else "TIMEOUT")
             if ok: received += 1
 
-        print(
+        self.session.io.println(
             f"{args.count} packets sent, {received} packets received, {round((1 - received / args.count) * 100, 1)}% packet loss")
 
     def help(self) -> str:
