@@ -64,7 +64,8 @@ class Shell:
             self.print(f"Invalid command: {args[0]}")
 
     def cwd(self):
-        return os.path.relpath(self.path, ROOT_DIR).replace('.', '/', 1)
+        path = os.path.relpath(self.path, ROOT_DIR)
+        return "/" if path == "." else "/" + path
 
     def get_prompt(self):
         return f"{NL}{"~" if self.path == self.user_manager.home else self.cwd()}$ "
