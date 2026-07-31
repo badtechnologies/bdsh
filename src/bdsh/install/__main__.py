@@ -6,7 +6,7 @@ from getpass import getpass
 
 from bdsh.install import InstallType
 from bdsh.install.util import prompt, print_header, print_task, install_python_package
-from bdsh.security.users import UserManager
+from bdsh.user import UserManager
 from bdsh.shell import Shell
 
 PYREQS_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt"

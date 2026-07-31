@@ -7,7 +7,8 @@ from typing import TextIO
 
 from bdsh import NL, __version__, get_shell_path, ROOT_DIR
 from bdsh.command.commands import register_commands
-from bdsh.security.users import User, UserManager
+from bdsh.user import User, UserManager
+from bdsh.util.filesystem import chdir
 
 
 class Shell:
@@ -18,7 +19,6 @@ class Shell:
         self.readchar = lambda: self.stdin.read(1)
         self.is_ssh = is_ssh
         self.path = Shell.get_path()
-        self.cwd = lambda: os.path.relpath(self.path, ROOT_DIR).replace('.', '/', 1)
 
         self.header = f"BadOS Dynamic Shell (v{__version__}) {'(BadBandSSH)' if is_ssh else ''}{NL}(c) Bad Technologies. All rights reserved.{NL}"
 
@@ -32,7 +32,6 @@ class Shell:
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
 
-        self.current_user: User | None = None
         self.user_manager = UserManager(Shell.get_path("cfg", "userman"))
 
     def fatal(self, msg: str, exit_code: int = 129):
@@ -65,8 +64,12 @@ class Shell:
         else:
             self.print(f"Invalid command: {args[0]}")
 
+    def cwd(self):
+        path = os.path.relpath(self.path, ROOT_DIR)
+        return "/" if path == "." else "/" + path
+
     def get_prompt(self):
-        return f"{NL}{self.cwd()}$ "
+        return f"{NL}{"~" if self.path == self.user_manager.home else self.cwd()}$ "
 
     @staticmethod
     def get_path(*paths: str):
@@ -82,21 +85,22 @@ class Shell:
             exit(1)
 
         # handle authentication
-        if not self.current_user:
+        if not self.user_manager.is_logged_in():
             self.print(NL + "You are not logged in!" + NL)
 
-        while not self.current_user:
+        while not self.user_manager.is_logged_in():
             try:
                 username = input("Username: ")
                 password = getpass("Password: ")
-                self.current_user = self.user_manager.try_login(username, password)
-                if not self.current_user:
+                success = self.user_manager.login(username, password)
+                if not success:
                     self.print(NL + "Invalid login" + NL)
             except KeyboardInterrupt:
                 self.print(NL)
                 continue
 
-        self.print(f"Welcome, {self.current_user.username}!{NL}")
+        self.print(f"Welcome, {self.user_manager.get_current_user().username}!{NL}")
+        chdir(self, self.get_path(self.user_manager.home))
 
         # start processing commands
         self.print(self.get_prompt())

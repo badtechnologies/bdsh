@@ -5,6 +5,7 @@ from bdsh import NL
 from bdsh.command import Command, AnonymousCommand
 from bdsh.command.bpm import BadOSPackageManagerCommand
 from bdsh.command.net import NetCommand, HostnameCommand, PingCommand
+from bdsh.util.filesystem import chdir
 
 if TYPE_CHECKING:
     from bdsh.shell import Shell
@@ -76,9 +77,9 @@ class ThrowCommand(Command):
 
 class GoCommand(Command):
     def execute(self, args: List[str]):
-        if os.path.exists(path := self.shell.get_path(args[1])):
-            self.shell.path = path
-            os.chdir(path)
+        arg = self.shell.user_manager.home if args[1] == "~" else os.path.join(self.shell.path, args[1])
+        if os.path.exists(path := self.shell.get_path(arg)):
+            chdir(self.shell, path)
         else:
             raise FileNotFoundError(f"{args[1]}: no such file or folder")
 

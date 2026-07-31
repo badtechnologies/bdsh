@@ -26,6 +26,9 @@ class User:
 class UserManager:
     def __init__(self, path: str):
         self.path = path
+        self.__current_user: User | None = None
+        self.home = None
+
         try:
             self.users = self.load()
         except FileNotFoundError:
@@ -73,13 +76,24 @@ class UserManager:
 
         self.users.append(User(username, hasher.hash(password)))
 
-    def try_login(self, username: str, password: str) -> User | None:
+    def login(self, username: str, password: str) -> bool:
         for user in self.users:
             if user.username != username: continue
 
             result = user.try_login(password)
             if not result: continue
 
-            return user
+            self.set_current_user(user)
+            return True
 
-        return None
+        return False
+
+    def is_logged_in(self):
+        return self.__current_user is not None
+
+    def get_current_user(self):
+        return self.__current_user
+
+    def set_current_user(self, user: User):
+        self.__current_user = user
+        self.home = get_shell_path("prf", self.__current_user.username)
