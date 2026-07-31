@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 from dataclasses import dataclass, field, fields
 from typing import Callable, Literal, cast, TYPE_CHECKING
 from urllib.parse import urlparse
@@ -227,7 +228,7 @@ class BadOSPackageManagerCommand(Command):
                 self.session.io.println("\tCould not find package, skipping")
                 continue
 
-            os.remove(path)
+            shutil.rmtree(path)
 
     def help(self) -> str:
         return parser.format_help()
