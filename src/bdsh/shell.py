@@ -7,7 +7,7 @@ from typing import TextIO
 
 from bdsh import NL, __version__, get_shell_path, ROOT_DIR
 from bdsh.command.commands import register_commands
-from bdsh.security.users import User, UserManager
+from bdsh.user import User, UserManager
 
 
 class Shell:
@@ -32,7 +32,6 @@ class Shell:
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
 
-        self.current_user: User | None = None
         self.user_manager = UserManager(Shell.get_path("cfg", "userman"))
 
     def fatal(self, msg: str, exit_code: int = 129):
@@ -82,21 +81,21 @@ class Shell:
             exit(1)
 
         # handle authentication
-        if not self.current_user:
+        if not self.user_manager.is_logged_in():
             self.print(NL + "You are not logged in!" + NL)
 
-        while not self.current_user:
+        while not self.user_manager.is_logged_in():
             try:
                 username = input("Username: ")
                 password = getpass("Password: ")
-                self.current_user = self.user_manager.try_login(username, password)
-                if not self.current_user:
+                success = self.user_manager.login(username, password)
+                if not success:
                     self.print(NL + "Invalid login" + NL)
             except KeyboardInterrupt:
                 self.print(NL)
                 continue
 
-        self.print(f"Welcome, {self.current_user.username}!{NL}")
+        self.print(f"Welcome, {self.user_manager.get_current_user().username}!{NL}")
 
         # start processing commands
         self.print(self.get_prompt())
