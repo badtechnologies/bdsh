@@ -17,7 +17,6 @@ class NetCommand(Command):
             interfaces = {if_name: interfaces[if_name]}
             addrs = {if_name: addrs[if_name]}
 
-
         for interface, stats in interfaces.items():
             msg = f"{interface}: flags={stats.flags} mtu {stats.mtu}"
 
@@ -36,3 +35,11 @@ class NetCommand(Command):
 
     def help(self) -> str:
         return "displays network interface info, specify an interface with a second argument"
+
+
+class HostnameCommand(Command):
+    def execute(self, args: List[str]):
+        print(NetworkManager.hostname())
+
+    def help(self) -> str:
+        return "displays the current system hostname"

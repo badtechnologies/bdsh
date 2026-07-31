@@ -4,7 +4,7 @@ from typing import List, TYPE_CHECKING, Dict
 from bdsh import NL
 from bdsh.command import Command, AnonymousCommand
 from bdsh.command.bpm import BadOSPackageManagerCommand
-from bdsh.command.net import NetCommand
+from bdsh.command.net import NetCommand, HostnameCommand
 
 if TYPE_CHECKING:
     from bdsh.shell import Shell
@@ -111,5 +111,6 @@ def register_commands(shell: Shell) -> Dict[str, Command]:
         "go": GoCommand(shell),
         "peek": PeekCommand(shell),
         "bpm": BadOSPackageManagerCommand(shell),
-        "net": NetCommand(shell)
+        "net": NetCommand(shell),
+        "hostname": HostnameCommand(shell)
     }
