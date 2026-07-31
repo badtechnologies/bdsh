@@ -29,7 +29,7 @@ class Shell:
                 self.session.commands[args[0]].execute(args)
             except Exception as e:
                 self.session.io.print(f"{args[0]}: {e}")
-        elif os.path.exists(path := get_exec_path(args[0])):
+        elif (path := get_exec_path(args[0])) and os.path.exists(path):
             module = load_exec(path)
             if hasattr(module, "main"):
                 module.main(session=self.session, args=args[1:])
