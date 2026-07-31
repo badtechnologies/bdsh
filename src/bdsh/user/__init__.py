@@ -24,7 +24,7 @@ class User:
 
 
 class UserManager:
-    def __init__(self, userman_path: str):
+    def __init__(self, userman_path: str = get_shell_path("cfg", "userman")):
         self.path = userman_path
 
         try:

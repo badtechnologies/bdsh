@@ -6,7 +6,7 @@ from bdsh.user import UserManager, User
 
 class BadLoginService:
     def __init__(self):
-        self.user_manager = UserManager(get_shell_path("cfg", "userman"))
+        self.user_manager = UserManager()
 
     def shell_login(self) -> User:
         print(SHELL_COPYRIGHT)
