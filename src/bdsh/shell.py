@@ -4,7 +4,7 @@ import sys
 from contextlib import redirect_stdout
 from typing import TextIO
 
-from bdsh import NL, __version__, get_shell_path
+from bdsh import NL, __version__, get_shell_path, SHELL_COPYRIGHT
 from bdsh.command.commands import register_commands
 from bdsh.user import User
 from bdsh.user.session import SessionManager
@@ -19,7 +19,7 @@ class Shell:
         self.is_ssh = is_ssh
         self.path = get_shell_path()
 
-        self.header = f"BadOS Dynamic Shell (v{__version__}) {'(BadBandSSH)' if is_ssh else ''}{NL}(c) Bad Technologies. All rights reserved.{NL}"
+        self.header = SHELL_COPYRIGHT
 
         self.commands = register_commands(self)
         self.definitions = {
