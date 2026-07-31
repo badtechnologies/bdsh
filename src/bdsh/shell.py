@@ -2,16 +2,16 @@ import os
 import subprocess
 import sys
 from contextlib import redirect_stdout
-from getpass import getpass
 from typing import TextIO
 
 from bdsh import NL, __version__, get_shell_path
 from bdsh.command.commands import register_commands
-from bdsh.user import UserManager
+from bdsh.user import User
+from bdsh.user.session import SessionManager
 
 
 class Shell:
-    def __init__(self, stdout: TextIO | None, stdin: TextIO | None, **is_ssh: bool):
+    def __init__(self, stdout: TextIO | None, stdin: TextIO | None, user: User, **is_ssh: bool):
         self.stdout = stdout
         self.stdin = stdin
         self.print = lambda s: self.stdout.write(s)
@@ -31,7 +31,7 @@ class Shell:
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
 
-        self.user_manager = UserManager(get_shell_path("cfg", "userman"))
+        self.session = SessionManager(user)
 
     def fatal(self, msg: str, exit_code: int = 129):
         self.print(f"FATAL({exit_code}): {msg}{NL}")
@@ -70,7 +70,7 @@ class Shell:
         self.path = os.path.abspath(path)
 
     def get_prompt(self):
-        return f"{NL}{self.user_manager.get_current_user().username}:{"~" if self.path == self.user_manager.home else self.cwd()}$ "
+        return f"{NL}{self.session.get_user().username}:{"~" if self.path == self.session.userhome else self.cwd()}$ "
 
     def start(self):
         # ensure session is valid
@@ -78,25 +78,14 @@ class Shell:
         self.run_line("ver")
 
         if not os.path.exists(self.path):
-            self.fatal(f"bdsh: current directory does not exist{NL}", 130)
+            self.fatal("bdsh: current directory does not exist", 130)
 
         # handle authentication
-        if not self.user_manager.is_logged_in():
-            self.print(NL + "You are not logged in!" + NL)
+        if not self.session.is_logged_in():
+            self.fatal("bdsh: attempted to instantiate shell without logging in", 131)
 
-        while not self.user_manager.is_logged_in():
-            try:
-                username = input("Username: ")
-                password = getpass("Password: ")
-                success = self.user_manager.login(username, password)
-                if not success:
-                    self.print(NL + "Invalid login" + NL)
-            except KeyboardInterrupt:
-                self.print(NL)
-                continue
-
-        self.print(f"Welcome, {self.user_manager.get_current_user().username}!{NL}")
-        self.chdir(self.user_manager.home)
+        self.print(f"Welcome, {self.session.get_user().username}!{NL}")
+        self.chdir(self.session.userhome)
 
         # start processing commands
         self.print(self.get_prompt())
