@@ -3,7 +3,7 @@ import json
 import os
 import re
 from dataclasses import dataclass, field, fields
-from typing import Callable, Literal, cast
+from typing import Callable, Literal, cast, TYPE_CHECKING
 from urllib.parse import urlparse
 
 import requests
@@ -11,8 +11,10 @@ import requests
 import bdsh
 from bdsh.command import Command
 from bdsh.install.util import install_python_package, print_task
-from bdsh.session import Session
 from bdsh.util.version import VersionSelector
+
+if TYPE_CHECKING:
+    from bdsh.session import Session
 
 BPL_REPO = 'badtechnologies/bpl/main'
 
