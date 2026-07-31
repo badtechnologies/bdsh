@@ -76,7 +76,7 @@ class ThrowCommand(Command):
 
 class GoCommand(Command):
     def execute(self, args: List[str]):
-        path = self.shell.user_manager.home if args[1] == "~" else os.path.join(self.shell.path, args[1])
+        path = self.shell.user_manager.userhome if args[1] == "~" else os.path.join(self.shell.path, args[1])
         if os.path.exists(path):
             self.shell.chdir(path)
         else:
