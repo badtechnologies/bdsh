@@ -5,10 +5,9 @@ from contextlib import redirect_stdout
 from getpass import getpass
 from typing import TextIO
 
-from bdsh import NL, __version__, get_shell_path, ROOT_DIR
+from bdsh import NL, __version__, get_shell_path
 from bdsh.command.commands import register_commands
-from bdsh.user import User, UserManager
-from bdsh.util.filesystem import chdir
+from bdsh.user import UserManager
 
 
 class Shell:
@@ -18,7 +17,7 @@ class Shell:
         self.print = lambda s: self.stdout.write(s)
         self.readchar = lambda: self.stdin.read(1)
         self.is_ssh = is_ssh
-        self.path = Shell.get_path()
+        self.path = get_shell_path()
 
         self.header = f"BadOS Dynamic Shell (v{__version__}) {'(BadBandSSH)' if is_ssh else ''}{NL}(c) Bad Technologies. All rights reserved.{NL}"
 
@@ -32,7 +31,7 @@ class Shell:
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
 
-        self.user_manager = UserManager(Shell.get_path("cfg", "userman"))
+        self.user_manager = UserManager(get_shell_path("cfg", "userman"))
 
     def fatal(self, msg: str, exit_code: int = 129):
         self.print(f"FATAL({exit_code}): {msg}{NL}")
@@ -54,7 +53,7 @@ class Shell:
                     self.commands[args[0]].execute(args)
             except Exception as e:
                 self.print(f"{args[0]}: {e}")
-        elif os.path.exists(binary := self.get_path("exec", args[0])):
+        elif os.path.exists(binary := get_shell_path("exec", args[0])):
             if self.is_ssh:
                 self.print(f"{args[0]} is unsupported over SSH")
                 return
@@ -65,24 +64,21 @@ class Shell:
             self.print(f"Invalid command: {args[0]}")
 
     def cwd(self):
-        path = os.path.relpath(self.path, ROOT_DIR)
-        return "/" if path == "." else "/" + path
+        return self.path
+
+    def chdir(self, path):
+        self.path = os.path.abspath(path)
 
     def get_prompt(self):
         return f"{NL}{"~" if self.path == self.user_manager.home else self.cwd()}$ "
 
-    @staticmethod
-    def get_path(*paths: str):
-        return get_shell_path(*paths)
-
     def start(self):
         # ensure session is valid
-        os.chdir(self.get_path())
+        os.chdir(self.path)
         self.run_line("ver")
 
-        if not os.path.exists(self.get_path()):
-            self.print(f"bdsh: bdsh directory does not exist{NL}")
-            exit(1)
+        if not os.path.exists(self.path):
+            self.fatal(f"bdsh: current directory does not exist{NL}", 130)
 
         # handle authentication
         if not self.user_manager.is_logged_in():
@@ -100,7 +96,7 @@ class Shell:
                 continue
 
         self.print(f"Welcome, {self.user_manager.get_current_user().username}!{NL}")
-        chdir(self, self.get_path(self.user_manager.home))
+        self.chdir(self.user_manager.home)
 
         # start processing commands
         self.print(self.get_prompt())
