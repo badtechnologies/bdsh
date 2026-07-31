@@ -4,8 +4,10 @@ from bdsh.user import User
 
 class SessionManager:
     def __init__(self, user: User = None):
-        self.__current_user = user
+        self.__current_user = None
         self.userhome = None
+
+        if user: self.set_user(user)
 
     def is_logged_in(self):
         return self.__current_user is not None
