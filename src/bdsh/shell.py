@@ -1,9 +1,9 @@
+import inspect
 import os
-import subprocess
-import sys
 
-from bdsh import NL, get_shell_path
+from bdsh import NL
 from bdsh.session import Session
+from bdsh.util.exec import load_exec, get_exec_path
 
 
 class Shell:
@@ -29,9 +29,18 @@ class Shell:
                 self.session.commands[args[0]].execute(args)
             except Exception as e:
                 self.session.io.print(f"{args[0]}: {e}")
-        elif os.path.exists(binary := get_shell_path("exec", args[0])):
-            subprocess.run([sys.executable, binary] + args[1:], stdout=self.stdout, stderr=subprocess.STDOUT,
-                           stdin=self.stdin, text=True, env=self.session.env)
+        elif os.path.exists(path := get_exec_path(args[0])):
+            module = load_exec(path)
+            if hasattr(module, "main"):
+                module.main(session=self.session, args=args[1:])
+
+                sig = inspect.signature(module.main)
+                params = list(sig.parameters.values())
+
+                if len(params) != 2:
+                    self.session.io.println(f"{args[0]}: main() must accept exactly (session, args)")
+            else:
+                self.session.io.println(f"{args[0]}: no main() function found")
         else:
             self.session.io.println(f"invalid command: {args[0]}")
 
