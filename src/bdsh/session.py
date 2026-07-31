@@ -4,13 +4,13 @@ from bdsh.user import User
 
 
 class Session:
-    def __init__(self, terminal: TerminalIO, user: User):
+    def __init__(self, io: TerminalIO, user: User):
         if not user:
             raise ValueError("session: cannot create userless session")
 
         self.__current_user = None
         self.userhome = None
-        self.terminal = terminal
+        self.io = io
 
         self.set_user(user)
 
