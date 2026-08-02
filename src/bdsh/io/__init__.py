@@ -55,3 +55,7 @@ class TerminalIO(ABC):
 
         self.write(f"\033]0;{title}\007")
         self.flush()
+
+    def input(self, prompt: str = ""):
+        self.print(prompt)
+        return self.readline()
