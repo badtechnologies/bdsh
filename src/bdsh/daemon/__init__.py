@@ -31,6 +31,11 @@ class Daemon(ABC):
         ...
 
 
+class DaemonUnavailableError(OSError):
+    def __init__(self, daemon_name: str):
+        super().__init__(f"daemon or socket unavailable: {daemon_name}")
+
+
 def get_daemon(name: str) -> Daemon:
     # import all packages first to fight python lazy loading
     package = importlib.import_module(__name__)
