@@ -126,6 +126,7 @@ class NetworkServer:
         if method == "interfaces":
             return {
                 name: {
+                    "flags": stats.flags,
                     "isup": stats.isup,
                     "duplex": stats.duplex,
                     "speed": stats.speed,
@@ -139,7 +140,7 @@ class NetworkServer:
             return {
                 name: [
                     {
-                        "family": str(address.family),
+                        "family": address.family.name,
                         "address": address.address,
                         "netmask": address.netmask,
                         "broadcast": address.broadcast,
