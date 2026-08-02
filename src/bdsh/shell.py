@@ -1,5 +1,4 @@
 import inspect
-import os
 
 from bdsh import NL
 from bdsh.session import Session
@@ -29,7 +28,7 @@ class Shell:
                 self.session.commands[args[0]].execute(args)
             except Exception as e:
                 self.session.io.print(f"{args[0]}: {e}")
-        elif (path := get_exec_path(args[0])) and os.path.exists(path):
+        elif path := get_exec_path(args[0]):
             module = load_exec(path)
             if hasattr(module, "main"):
                 module.main(session=self.session, args=args[1:])
@@ -49,11 +48,11 @@ class Shell:
 
     def start(self):
         # ensure session is valid
-        os.chdir(self.session.cwd)
+        self.session.chdir(self.session.cwd)  # resolve cwd
         self.run_line("ver")
 
-        if not os.path.exists(self.session.cwd):
-            self.fatal("bdsh: current directory does not exist", 130)
+        if not self.session.cwd.is_dir(follow_symlinks=True):
+            self.fatal("bdsh: current directory does not exist or is not a folder", 130)
 
         # handle authentication
         if not self.session.is_logged_in():

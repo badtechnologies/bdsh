@@ -1,13 +1,14 @@
-import os
-import os
 import subprocess
 import sys
 from getpass import getpass
 
+from bdsh import OSPaths, SHELL_COPYRIGHT
 from bdsh.install import InstallType
 from bdsh.install.util import prompt, print_header, print_task, install_python_package
-from bdsh.user import UserManager
+from bdsh.io.console import ConsoleTerminal
+from bdsh.session import Session
 from bdsh.shell import Shell
+from bdsh.user import UserManager, User
 
 PYREQS_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt"
 GIT_URL = "https://github.com/badtechnologies/bdsh"
@@ -17,8 +18,7 @@ BPL_URL = "https://raw.githubusercontent.com/badtechnologies/bpl/main/lib"
 PYREQS = "requirements.txt"
 BDSH_SRC = "src/bdsh/bdsh.py"
 
-BDSH_DIRS = ['cfg', 'prf', 'exec', 'app']
-BDSH_ROOT = "bdsh"
+BDSH_ROOT = OSPaths.ROOT
 
 
 def main():
@@ -39,7 +39,7 @@ def main():
                 exit()
 
     print(f"BDSH INSTALLATION TOOL, {install_type.name} INSTALL\n(c) Bad Technologies. All rights reserved.\n")
-    if install_type is not InstallType.SYSTEM and os.path.exists(BDSH_ROOT):
+    if install_type is not InstallType.SYSTEM and BDSH_ROOT.exists():
         prompt("This will replace your current bdsh configs, proceed?", lambda: exit(0))
 
     print_header("SETUP ENV")
@@ -60,13 +60,10 @@ def main():
 
     print_task("Initializing bdsh directory structure")
     try:
-        if not os.path.exists(BDSH_ROOT):
-            os.mkdir(BDSH_ROOT)
+        BDSH_ROOT.mkdir(exist_ok=True)
 
-        for dir in BDSH_DIRS:
-            path = os.path.join(BDSH_ROOT, dir)
-            if not os.path.exists(path):
-                os.mkdir(path)
+        for path in OSPaths.all():
+            path.mkdir(exist_ok=True)
 
         print("OK")
     except Exception as e:
@@ -77,12 +74,12 @@ def main():
         print(f"Populated bdsh root ({BDSH_ROOT}/) successfully")
 
     print("Starting virtual bdsh session")
-    virtsh = Shell(sys.stdout, sys.stdin)
-    print(Shell(None, None).header)
+    virtsh = Shell(Session(ConsoleTerminal(), User("VirtualInstaller", "")))
+    print(SHELL_COPYRIGHT)
 
     print_header("CREATE USERS")
 
-    userman = UserManager(os.path.join(BDSH_ROOT, "cfg", "userman"))
+    userman = UserManager(OSPaths.CONFIGS.joinpath("userman"))
     while True:
         username = input("Enter username\t\t")
         password = getpass("Enter password\t\t")

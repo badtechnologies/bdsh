@@ -1,12 +1,14 @@
 import importlib.util
-import os
 from importlib.machinery import SourceFileLoader
+from pathlib import Path
+from types import ModuleType
+from typing import Never
 
 from bdsh import get_shell_path
 
 
-def load_exec(path: str):
-    loader = SourceFileLoader("bdsh_exec", path)
+def load_exec(path: Path) -> ModuleType | Never:
+    loader = SourceFileLoader("bdsh_exec", str(path))
     spec = importlib.util.spec_from_loader(loader.name, loader)
 
     if spec is None or spec.loader is None:
@@ -17,11 +19,9 @@ def load_exec(path: str):
     return module
 
 
-def get_exec_path(executable: str) -> str | None:
-    base = get_shell_path("exec")
-
-    for root, dirs, files in os.walk(base):
+def get_exec_path(executable: str) -> Path | None:
+    for root, dirs, files in Path.walk(get_shell_path("exec")):
         if executable in files:
-            return os.path.join(root, executable)
+            return root.joinpath(executable)
 
     return None

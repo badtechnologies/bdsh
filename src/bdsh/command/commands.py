@@ -1,4 +1,3 @@
-import os
 from typing import List, Dict, TYPE_CHECKING
 
 from bdsh import NL, SHELL_COPYRIGHT
@@ -33,10 +32,12 @@ class HelpCommand(Command):
 class ListDirectoryCommand(Command):
     def execute(self, args: List[str]):
         try:
-            path = args[1] if len(args) > 1 else self.session.cwd
-            items = os.listdir(path)
-            self.session.io.println(
-                '\t'.join([item + '/' if os.path.isdir(os.path.join(path, item)) else item for item in items]))
+            path = self.session.cwd.joinpath(args[1]).resolve() if len(args) > 1 else self.session.cwd
+
+            self.session.io.println('\t'.join([
+                str(item.name) + '/' if path.joinpath(item).is_dir() else str(item.name)
+                for item in path.iterdir()
+            ]))
         except FileNotFoundError:
             raise FileNotFoundError(f"{args[1]}: does not exist")
 
@@ -71,11 +72,11 @@ class ThrowCommand(Command):
 
 class GoCommand(Command):
     def execute(self, args: List[str]):
-        path = self.session.userhome if args[1] == "~" else os.path.join(self.session.cwd, args[1])
-        if os.path.exists(path):
+        path = self.session.userhome if args[1] == "~" else self.session.cwd.joinpath(args[1])
+        if path.is_dir():
             self.session.chdir(path)
         else:
-            raise FileNotFoundError(f"{args[1]}: no such file or folder")
+            raise FileNotFoundError(f"{args[1]}: no such folder")
 
     def help(self) -> str:
         return "goes to a directory"
@@ -83,7 +84,8 @@ class GoCommand(Command):
 
 class PeekCommand(Command):
     def execute(self, args: List[str]):
-        if os.path.isfile(path := os.path.join(self.session.cwd, args[1])):
+        path = self.session.cwd.joinpath(args[1])
+        if path.is_file(follow_symlinks=True):
             with open(path, 'r') as f:
                 self.session.io.println(f.read())
         else:

@@ -1,17 +1,14 @@
 import argparse
 import json
-import os
 import re
 import shutil
 from dataclasses import dataclass, field, fields
-from pathlib import Path
 from typing import Callable, Literal, cast, TYPE_CHECKING
 from urllib.parse import urlparse
 
 import requests
 
-import bdsh
-from bdsh import get_shell_path
+from bdsh import __version__, OSPaths, get_shell_path
 from bdsh.command import Command
 from bdsh.install.util import install_python_package
 from bdsh.util.version import VersionSelector
@@ -20,9 +17,8 @@ if TYPE_CHECKING:
     from bdsh.session import Session
 
 BPL_REPO = 'badtechnologies/bpl/main'
-BPM_APP_DIR = get_shell_path("app", "bpm")  # for package installations
-BPM_EXEC_DIR = get_shell_path("exec")  # for symlinks to executables
-BPM_STORE_DIR = get_shell_path("cfg", "bpm")  # for a store of all packages
+BPM_APP_DIR = OSPaths.APPLICATIONS.joinpath("bpm")  # for package installations
+BPM_STORE_DIR = OSPaths.CONFIGS.joinpath("bpm")  # for a store of all packages
 
 parser = argparse.ArgumentParser(description='BadOS Package Manager', color=False, add_help=False)
 parser.add_argument('action', type=str, choices=['install', 'remove'], help='action to perform')
@@ -179,14 +175,14 @@ class BadOSPackageManagerCommand(Command):
                 raise ValueError("user exited program with code 0")
 
         for package in self.packages:
-            if not VersionSelector(package.shellVersion).matches(bdsh.__version__):
+            if not VersionSelector(package.shellVersion).matches(__version__):
                 self.session.io.println(
                     f"Package {package.id}-{package.version} ({package.name}) is not compatible with this version of BadOS!")
                 continue
 
             self.session.io.println(f"Installing {package.id}-{package.version} ({package.name})")
 
-            os.makedirs(os.path.join(BPM_APP_DIR, package.id, package.version), exist_ok=True)
+            BPM_APP_DIR.joinpath(package.id, package.version).mkdir(parents=True, exist_ok=True)
 
             for bin_name, bin_repo_name in package.binaries.items():
                 res = requests.get(get_bpl_uri(package.internal_repo, package.id, bin_repo_name))
@@ -196,11 +192,11 @@ class BadOSPackageManagerCommand(Command):
                         f"\tHTTP {res.status_code}; could not access binary '{bin_name}' for package '{package.id}'")
                     continue
 
-                binary = Path(os.path.join(BPM_APP_DIR, package.id, package.version, bin_name))
+                binary = BPM_APP_DIR.joinpath(package.id, package.version, bin_name)
                 with open(binary, 'wb') as f:
                     f.write(res.content)
 
-                symlink = Path(BPM_EXEC_DIR).joinpath(bin_name)
+                symlink = OSPaths.EXECUTABLES.joinpath(bin_name)
                 symlink.symlink_to(binary)
 
             if package.pythonDependencies:
@@ -233,9 +229,9 @@ class BadOSPackageManagerCommand(Command):
 
         for package in args.packages:
             self.session.io.println(f"Deleting {package}")
-            path = bdsh.get_shell_path("exec", package)
+            path = get_shell_path("exec", package)
 
-            if not os.path.exists(path):
+            if not path.exists():
                 self.session.io.println("\tCould not find package, skipping")
                 continue
 

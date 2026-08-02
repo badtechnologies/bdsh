@@ -1,11 +1,11 @@
-import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Never
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
-from bdsh import get_shell_path
+from bdsh import OSPaths
 
 hasher = PasswordHasher()
 
@@ -24,7 +24,7 @@ class User:
 
 
 class UserManager:
-    def __init__(self, userman_path: str = get_shell_path("cfg", "userman")):
+    def __init__(self, userman_path: Path = OSPaths.CONFIGS.joinpath("userman")):
         self.path = userman_path
 
         try:
@@ -51,9 +51,7 @@ class UserManager:
                 username, password_hash = line.split(":", 1)
                 users.append(User(username, password_hash))
 
-                path = get_shell_path("prf", username)
-                if not os.path.exists(path):
-                    os.mkdir(path)
+                OSPaths.PROFILES.joinpath(username).mkdir(exist_ok=True)
 
         return users
 

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from bdsh import get_shell_path
 from bdsh.command.commands import register_commands
@@ -17,7 +18,7 @@ class Session:
         self.cwd = get_shell_path()
 
         self.env = os.environ.copy()
-        self.env['PYTHONPATH'] = os.path.dirname(os.path.realpath(__file__))
+        self.env['PYTHONPATH'] = str(Path(__file__).resolve().parent)
 
         self.commands = register_commands(self)
         self.definitions = {
@@ -38,5 +39,5 @@ class Session:
         self.__current_user = user
         self.userhome = get_shell_path("prf", self.__current_user.username)
 
-    def chdir(self, path):
-        self.cwd = os.path.abspath(path)
+    def chdir(self, path: Path):
+        self.cwd = path.resolve()
