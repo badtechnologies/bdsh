@@ -97,14 +97,14 @@ class PeekCommand(Command):
 
 def register_commands(session: Session) -> Dict[str, Command]:
     return {
-        "exit": AnonymousCommand(session, lambda _: exit(0), ""),
+        "exit": AnonymousCommand(session, lambda _: session.set_is_running(False), "exits the shell"),
         "help": HelpCommand(session),
         "echo": AnonymousCommand(session, lambda args: session.io.println(' '.join(args[1:])), ""),
         "ld": ListDirectoryCommand(session),
-        "ver": AnonymousCommand(session, lambda _: session.io.println(SHELL_COPYRIGHT), ""),
+        "ver": AnonymousCommand(session, lambda _: session.io.println(SHELL_COPYRIGHT), "displays shell version"),
         "def": DefineCommand(session),
         "throw": ThrowCommand(session),
-        "cwd": AnonymousCommand(session, lambda _: session.io.println(session.cwd), ""),
+        "cwd": AnonymousCommand(session, lambda _: session.io.println(session.cwd), "displays current directory"),
         "go": GoCommand(session),
         "peek": PeekCommand(session),
         "bpm": BadOSPackageManagerCommand(session),

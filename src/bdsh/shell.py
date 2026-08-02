@@ -13,7 +13,7 @@ class Shell:
         self.session.io.println(f"FATAL({exit_code}): {msg}")
         exit(exit_code)
 
-    def run_line(self, line: str):
+    def execute(self, line: str):
         line = line.strip()  # dont want to process invisible characters
 
         if line == "":
@@ -22,7 +22,7 @@ class Shell:
         args = line.split(' ')
 
         if args[0] in self.session.definitions:
-            self.run_line(self.session.definitions[args[0]] + " " + ' '.join(args[1:]))
+            self.execute(self.session.definitions[args[0]] + " " + ' '.join(args[1:]))
         elif args[0] in self.session.commands:
             try:
                 self.session.commands[args[0]].execute(args)
@@ -49,7 +49,8 @@ class Shell:
     def start(self):
         # ensure session is valid
         self.session.chdir(self.session.cwd)  # resolve cwd
-        self.run_line("ver")
+        self.execute("ver")
+        self.session.is_running = True
 
         if not self.session.cwd.is_dir(follow_symlinks=True):
             self.fatal("bdsh: current directory does not exist or is not a folder", 130)
@@ -62,22 +63,22 @@ class Shell:
         self.session.chdir(self.session.userhome)
 
         # start processing commands
-        self.session.io.print(self.get_prompt())
         buffer = []
 
-        while True:
+        while self.session.is_running:
             try:
+                if not buffer:
+                    self.session.io.print(self.get_prompt())
+
                 char = self.session.io.read(1)
 
                 if char in {'\n', '\r'}:
                     if char == '\r':
                         self.session.io.print('\n')
-                    self.run_line(''.join(buffer))
+                    self.execute(''.join(buffer))
                     buffer.clear()
-                    self.session.io.print(self.get_prompt())
                 elif char == '\x03':  # ^C
                     buffer.clear()
-                    self.session.io.print(self.get_prompt())
                 elif char == '\x7f':  # backspace
                     if len(buffer) <= 0:
                         continue
@@ -88,7 +89,6 @@ class Shell:
 
             except KeyboardInterrupt:
                 buffer.clear()
-                self.session.io.print(self.get_prompt())
                 continue
 
             except Exception as e:

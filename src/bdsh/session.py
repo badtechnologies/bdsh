@@ -16,6 +16,7 @@ class Session:
         self.userhome = None
         self.io = io
         self.cwd = get_shell_path()
+        self.is_running = False
 
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = str(Path(__file__).resolve().parent)
@@ -41,3 +42,6 @@ class Session:
 
     def chdir(self, path: Path):
         self.cwd = path.resolve()
+
+    def set_is_running(self, is_running: bool):
+        self.is_running = is_running
