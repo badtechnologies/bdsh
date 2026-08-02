@@ -19,7 +19,7 @@ BPM_APP_DIR = OSPaths.APPLICATIONS.joinpath("bpm")  # for package installations
 BPM_STORE_DIR = OSPaths.CONFIGS.joinpath("bpm")  # for a store of all packages
 
 parser = argparse.ArgumentParser(description='BadOS Package Manager', color=False, add_help=False)
-parser.add_argument('action', type=str, choices=['install', 'remove'], help='action to perform')
+parser.add_argument('action', type=str, choices=['install', 'remove', 'upgrade'], help='action to perform')
 parser.add_argument('packages', nargs='+', type=str, help='packages to manage')
 parser.add_argument('-y', '--yes', action='store_true',
                     help='assume "yes" as the answer to all prompts and run non-interactively')
@@ -162,6 +162,7 @@ class BadOSPackageManagerCommand(Command):
         self.handlers: dict[str, Callable[[BpmArgs], None]] = {
             "install": self.__install,
             "remove": self.__remove,
+            "upgrade": self.__upgrade,
         }
 
     def execute(self, args: list[str]):
@@ -324,6 +325,20 @@ class BadOSPackageManagerCommand(Command):
 
             store[version].unlink()
             self.session.io.println(f"\tCompleted package deletion")
+
+    def __upgrade(self, args: BpmArgs):
+        if not args.yes:
+            while (s := self.session.io.input(
+                    f"Remove {len(args.packages)} package(s): {' '.join(args.packages)}? [Y/n] " or 'n'
+            ).lower()) not in {'y', 'n'}:
+                continue
+            # noinspection PyUnboundLocalVariable
+            if s == 'n':
+                return
+            args.yes = True
+
+        self.__remove(args)
+        self.__install(args)
 
     def help(self) -> str:
         return parser.format_help()
