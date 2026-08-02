@@ -4,20 +4,25 @@ import os
 import re
 import shutil
 from dataclasses import dataclass, field, fields
+from pathlib import Path
 from typing import Callable, Literal, cast, TYPE_CHECKING
 from urllib.parse import urlparse
 
 import requests
 
 import bdsh
+from bdsh import get_shell_path
 from bdsh.command import Command
-from bdsh.install.util import install_python_package, print_task
+from bdsh.install.util import install_python_package
 from bdsh.util.version import VersionSelector
 
 if TYPE_CHECKING:
     from bdsh.session import Session
 
 BPL_REPO = 'badtechnologies/bpl/main'
+BPM_APP_DIR = get_shell_path("app", "bpm")  # for package installations
+BPM_EXEC_DIR = get_shell_path("exec")  # for symlinks to executables
+BPM_STORE_DIR = get_shell_path("cfg", "bpm")  # for a store of all packages
 
 parser = argparse.ArgumentParser(description='BadOS Package Manager', color=False, add_help=False)
 parser.add_argument('action', type=str, choices=['install', 'remove'], help='action to perform')
@@ -169,6 +174,7 @@ class BadOSPackageManagerCommand(Command):
                     f"Install {len(self.packages)} package(s): {' '.join([p.id for p in self.packages])}? [Y/n] " or 'n').lower()) not in {
                 'y', 'n'}:
                 pass
+            # noinspection PyUnboundLocalVariable
             if s == 'n':
                 raise ValueError("user exited program with code 0")
 
@@ -180,7 +186,7 @@ class BadOSPackageManagerCommand(Command):
 
             self.session.io.println(f"Installing {package.id}-{package.version} ({package.name})")
 
-            os.makedirs(bdsh.get_shell_path("exec", package.id), exist_ok=True)
+            os.makedirs(os.path.join(BPM_APP_DIR, package.id, package.version), exist_ok=True)
 
             for bin_name, bin_repo_name in package.binaries.items():
                 res = requests.get(get_bpl_uri(package.internal_repo, package.id, bin_repo_name))
@@ -190,14 +196,18 @@ class BadOSPackageManagerCommand(Command):
                         f"\tHTTP {res.status_code}; could not access binary '{bin_name}' for package '{package.id}'")
                     continue
 
-                with open(bdsh.get_shell_path("exec", package.id, bin_name), 'wb') as f:
+                binary = Path(os.path.join(BPM_APP_DIR, package.id, package.version, bin_name))
+                with open(binary, 'wb') as f:
                     f.write(res.content)
 
+                symlink = Path(BPM_EXEC_DIR).joinpath(bin_name)
+                symlink.symlink_to(binary)
+
             if package.pythonDependencies:
-                self.session.io.print(f"Installing Python dependencies for {package.id}")
+                self.session.io.println(f"Installing Python dependencies for {package.id}")
                 for dep, ver in package.pythonDependencies.items():
-                    print_task(f"Install {dep}, {ver}")
-                    install_python_package(f"{dep}{VersionSelector(ver).to_pip()}")
+                    self.session.io.print(f"Install {dep}, {ver}... ")
+                    install_python_package(f"{dep}{VersionSelector(ver).to_pip()}", printfn=self.session.io.println)
 
             for i, script in enumerate(package.setupScripts):
                 res = requests.get(get_bpl_uri(package.internal_repo, package.id, script))
@@ -217,6 +227,7 @@ class BadOSPackageManagerCommand(Command):
                     f"Remove {len(args.packages)} package(s): {' '.join(args.packages)}? [Y/n] " or 'n').lower()) not in {
                 'y', 'n'}:
                 pass
+            # noinspection PyUnboundLocalVariable
             if s == 'n':
                 raise ValueError("user exited program with code 0")
 

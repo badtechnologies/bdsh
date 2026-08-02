@@ -12,6 +12,7 @@
       <option name="ignoredNames">
         <list>
           <option value="hash" />
+          <option value="id" />
         </list>
       </option>
     </inspection_tool>
