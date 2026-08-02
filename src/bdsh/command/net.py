@@ -5,13 +5,14 @@ from typing import List
 from icmplib import ping
 
 from bdsh.command import Command
-from bdsh.network import NetworkManager
+from bdsh.network.client import NetworkClient
 
 
 class NetCommand(Command):
     def execute(self, args: List[str]):
-        interfaces = NetworkManager.interfaces()
-        addrs = NetworkManager.interface_addresses()
+        client = NetworkClient()
+        interfaces = client.interfaces()
+        addrs = client.interface_addresses()
 
         if len(args) > 1:
             if_name = args[1]
@@ -22,18 +23,20 @@ class NetCommand(Command):
             addrs = {if_name: addrs[if_name]}
 
         for interface, stats in interfaces.items():
-            msg = f"{interface}: flags={stats.flags} mtu {stats.mtu}"
+            msg = f"{interface}: flags={stats["flags"]} mtu {stats["mtu"]}"
 
-            ifaddrs = addrs.get(interface)
+            ifaddrs: list[dict[str, str]] = addrs.get(interface)
             if ifaddrs:
                 for addr in ifaddrs:
-                    msg += f"\n\t{addr.family.name} {addr.address}"
-                    if addr.netmask:
-                        msg += f" netmask {addr.netmask}"
-                    if addr.broadcast:
-                        msg += f" broadcast {addr.broadcast}"
-                    elif addr.ptp:
-                        msg += f" ptp {addr.ptp}"
+                    msg += f"\n\t{addr["family"]} {addr["address"]}"
+
+                    if addr.get("netmask"):
+                        msg += f" netmask {addr["netmask"]}"
+
+                    if addr.get("broadcast"):
+                        msg += f" broadcast {addr["broadcast"]}"
+                    elif addr.get("ptp"):
+                        msg += f" ptp {addr["ptp"]}"
 
             self.session.io.println(msg)
 
@@ -43,7 +46,7 @@ class NetCommand(Command):
 
 class HostnameCommand(Command):
     def execute(self, args: List[str]):
-        self.session.io.println(NetworkManager.hostname())
+        self.session.io.println(NetworkClient().hostname())
 
     def help(self) -> str:
         return "displays the current system hostname"
@@ -63,7 +66,7 @@ class PingCommand(Command):
             return
 
         try:
-            host = NetworkManager.resolve(args.host)
+            host = NetworkClient().resolve(args.host)
         except socket.gaierror:
             raise ValueError(f"failed to resolve host: \"{args.host}\"")
 
