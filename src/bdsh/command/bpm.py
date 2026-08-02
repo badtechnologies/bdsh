@@ -132,10 +132,10 @@ class StoreMetadata:
             data = json.load(f)
 
         return cls(
-            name=data["name"],
-            author=data["author"],
-            binaries=[Path(x) for x in data["binaries"]],
-            symlinks=[Path(x) for x in data["symlinks"]],
+            name=data.get("name", "Unnamed package"),
+            author=data.get("author", "Unknown author"),
+            binaries=[Path(x) for x in data.get("binaries", [])],
+            symlinks=[Path(x) for x in data.get("symlinks", [])],
         )
 
     def dump(self, file: Path) -> None:
@@ -245,7 +245,7 @@ class BadOSPackageManagerCommand(Command):
 
                 if symlink.exists():
                     replace = self.session.io.input(
-                        f"Error while linking: {bin_name} already exists! Replace it? [Y/n]"
+                        f"Error while linking: {bin_name} already exists! Replace it? [Y/n] "
                     ).lower() or "y"
 
                     if replace != "y":
@@ -295,15 +295,35 @@ class BadOSPackageManagerCommand(Command):
                 return
 
         for package in args.packages:
-            self.session.io.println(f"Deleting {package}")
-            path = OSPaths.EXECUTABLES.joinpath(package)
+            self.session.io.println(f"Deleting {package}...")
 
-            if not path.exists():
-                self.session.io.println(f"\tCould not find '{package}', skipping")
-                continue
+            store: dict[str, Path] = {}
+            for file in BPM_STORE_DIR.glob("*.bpmstore"):
+                if not file.name.startswith(package): return
 
-            path.unlink()
-            self.session.io.println(f"\tUnlinked '{package}'")
+                _id, version = file.name.removesuffix(".bpmstore").rsplit("@", 1)
+                store[version] = file
+            versions = list(store.keys())
+
+            version = versions[0]
+            if len(store) > 1:
+                i = int(self.session.io.input("More than one version found! Please select a version to remove.\n\t"
+                                              + "\n\t".join(f"{i}: {version}" for i, version in enumerate(store, 1))
+                                              + "\n\t> "))
+                version = versions[i - 1]
+
+            meta = StoreMetadata.load(store[version])
+            for binary in meta.binaries:
+                if binary.exists():
+                    binary.unlink()
+                    self.session.io.println(f"\tDeleted binary: {str(binary)}")
+
+            for symlink in meta.symlinks:
+                symlink.unlink()
+                self.session.io.println(f"\tUnlinked executable: {str(symlink.name)}")
+
+            store[version].unlink()
+            self.session.io.println(f"\tCompleted package deletion")
 
     def help(self) -> str:
         return parser.format_help()
