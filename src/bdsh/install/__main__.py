@@ -104,7 +104,7 @@ def main():
     print("OK")
 
     print_header("INSTALL PACKAGES")
-    virtsh.run_line("bpm install -y core")
+    virtsh.execute("bpm install -y core")
 
 
 if __name__ == "__main__":
