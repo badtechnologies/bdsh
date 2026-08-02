@@ -50,6 +50,7 @@ class Shell:
         # ensure session is valid
         self.session.chdir(self.session.cwd)  # resolve cwd
         self.execute("ver")
+        self.session.is_running = True
 
         if not self.session.cwd.is_dir(follow_symlinks=True):
             self.fatal("bdsh: current directory does not exist or is not a folder", 130)
@@ -62,11 +63,13 @@ class Shell:
         self.session.chdir(self.session.userhome)
 
         # start processing commands
-        self.session.io.print(self.get_prompt())
         buffer = []
 
-        while True:
+        while self.session.is_running:
             try:
+                if not buffer:
+                    self.session.io.print(self.get_prompt())
+
                 char = self.session.io.read(1)
 
                 if char in {'\n', '\r'}:
@@ -74,10 +77,8 @@ class Shell:
                         self.session.io.print('\n')
                     self.execute(''.join(buffer))
                     buffer.clear()
-                    self.session.io.print(self.get_prompt())
                 elif char == '\x03':  # ^C
                     buffer.clear()
-                    self.session.io.print(self.get_prompt())
                 elif char == '\x7f':  # backspace
                     if len(buffer) <= 0:
                         continue
@@ -88,7 +89,6 @@ class Shell:
 
             except KeyboardInterrupt:
                 buffer.clear()
-                self.session.io.print(self.get_prompt())
                 continue
 
             except Exception as e:
