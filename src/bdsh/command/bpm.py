@@ -1,14 +1,12 @@
 import argparse
-import json
 import re
-import shutil
 from dataclasses import dataclass, field, fields
 from typing import Callable, Literal, cast, TYPE_CHECKING
 from urllib.parse import urlparse
 
 import requests
 
-from bdsh import __version__, OSPaths, get_shell_path
+from bdsh import __version__, OSPaths
 from bdsh.command import Command
 from bdsh.install.util import install_python_package
 from bdsh.util.version import VersionSelector
@@ -116,6 +114,42 @@ class Package:
             raise PackageException(package, f"something went wrong. HTTP {res.status_code} while fetching package data")
 
 
+from dataclasses import dataclass
+import json
+from pathlib import Path
+
+
+@dataclass
+class StoreMetadata:
+    name: str
+    author: str
+    binaries: list[Path]
+    symlinks: list[Path]
+
+    @classmethod
+    def load(cls, file: Path) -> "StoreMetadata":
+        with file.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return cls(
+            name=data["name"],
+            author=data["author"],
+            binaries=[Path(x) for x in data["binaries"]],
+            symlinks=[Path(x) for x in data["symlinks"]],
+        )
+
+    def dump(self, file: Path) -> None:
+        data = {
+            "name": self.name,
+            "author": self.author,
+            "binaries": [str(x) for x in self.binaries],
+            "symlinks": [str(x) for x in self.symlinks],
+        }
+
+        with file.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+
+
 class PackageException(Exception):
     def __init__(self, package: str, message: str):
         super().__init__(f"{package}: {message}")
@@ -165,16 +199,24 @@ class BadOSPackageManagerCommand(Command):
 
         self.session.io.println()
 
+        if not self.packages:
+            self.session.io.println("No packages to install!")
+            return
+
         if not args.yes:
-            while (s := input(
-                    f"Install {len(self.packages)} package(s): {' '.join([p.id for p in self.packages])}? [Y/n] " or 'n').lower()) not in {
-                'y', 'n'}:
-                pass
+            while (s := self.session.io.input(
+                    f"Install {len(self.packages)} package(s): {' '.join([p.id for p in self.packages])}? [Y/n] " or 'n'
+            ).lower()) not in {'y', 'n'}:
+                break
             # noinspection PyUnboundLocalVariable
             if s == 'n':
-                raise ValueError("user exited program with code 0")
+                return
 
         for package in self.packages:
+            binaries = []
+            symlinks = []
+
+            # check compat. with bdsh/bados version
             if not VersionSelector(package.shellVersion).matches(__version__):
                 self.session.io.println(
                     f"Package {package.id}-{package.version} ({package.name}) is not compatible with this version of BadOS!")
@@ -182,7 +224,9 @@ class BadOSPackageManagerCommand(Command):
 
             self.session.io.println(f"Installing {package.id}-{package.version} ({package.name})")
 
-            BPM_APP_DIR.joinpath(package.id, package.version).mkdir(parents=True, exist_ok=True)
+            # create app folder and download binaries to it
+            bin_folder = BPM_APP_DIR.joinpath(package.id, package.version)
+            bin_folder.mkdir(parents=True, exist_ok=True)
 
             for bin_name, bin_repo_name in package.binaries.items():
                 res = requests.get(get_bpl_uri(package.internal_repo, package.id, bin_repo_name))
@@ -192,19 +236,41 @@ class BadOSPackageManagerCommand(Command):
                         f"\tHTTP {res.status_code}; could not access binary '{bin_name}' for package '{package.id}'")
                     continue
 
-                binary = BPM_APP_DIR.joinpath(package.id, package.version, bin_name)
+                binary = bin_folder.joinpath(bin_name)
+                binaries.append(binary)
                 with open(binary, 'wb') as f:
                     f.write(res.content)
 
                 symlink = OSPaths.EXECUTABLES.joinpath(bin_name)
-                symlink.symlink_to(binary)
 
+                if symlink.exists():
+                    replace = self.session.io.input(
+                        f"Error while linking: {bin_name} already exists! Replace it? [Y/n]"
+                    ).lower() or "y"
+
+                    if replace != "y":
+                        self.session.io.println("Skipped linking for this binary")
+                        continue
+
+                    symlink.unlink()
+
+                symlink.symlink_to(binary)
+                self.session.io.println(f"Linked {symlink} -> {binary}")
+                symlinks.append(symlink)
+
+            # store metadata
+            store = BPM_STORE_DIR.joinpath(f"{package.id}@{package.version}.bpmstore")
+            store.parent.mkdir(parents=True, exist_ok=True)
+            StoreMetadata(name=package.name, author=package.author, binaries=binaries, symlinks=symlinks).dump(store)
+
+            # install py deps
             if package.pythonDependencies:
                 self.session.io.println(f"Installing Python dependencies for {package.id}")
                 for dep, ver in package.pythonDependencies.items():
                     self.session.io.print(f"Install {dep}, {ver}... ")
                     install_python_package(f"{dep}{VersionSelector(ver).to_pip()}", printfn=self.session.io.println)
 
+            # run setup script
             for i, script in enumerate(package.setupScripts):
                 res = requests.get(get_bpl_uri(package.internal_repo, package.id, script))
 
@@ -215,27 +281,29 @@ class BadOSPackageManagerCommand(Command):
 
                 self.session.io.println(f"Executing setup script ({i}/{len(package.setupScripts)})...")
                 exec(res.content.decode())
+
             self.session.io.println("Done!")
 
     def __remove(self, args: BpmArgs):
         if not args.yes:
-            while (s := input(
-                    f"Remove {len(args.packages)} package(s): {' '.join(args.packages)}? [Y/n] " or 'n').lower()) not in {
-                'y', 'n'}:
-                pass
+            while (s := self.session.io.input(
+                    f"Remove {len(args.packages)} package(s): {' '.join(args.packages)}? [Y/n] " or 'n'
+            ).lower()) not in {'y', 'n'}:
+                break
             # noinspection PyUnboundLocalVariable
             if s == 'n':
-                raise ValueError("user exited program with code 0")
+                return
 
         for package in args.packages:
             self.session.io.println(f"Deleting {package}")
-            path = get_shell_path("exec", package)
+            path = OSPaths.EXECUTABLES.joinpath(package)
 
             if not path.exists():
-                self.session.io.println("\tCould not find package, skipping")
+                self.session.io.println(f"\tCould not find '{package}', skipping")
                 continue
 
-            shutil.rmtree(path)
+            path.unlink()
+            self.session.io.println(f"\tUnlinked '{package}'")
 
     def help(self) -> str:
         return parser.format_help()
