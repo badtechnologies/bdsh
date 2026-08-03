@@ -2,6 +2,7 @@ import importlib
 import pkgutil
 import signal
 from abc import ABC, abstractmethod
+from types import FrameType
 from typing import Type
 
 DAEMONS: dict[str, Type["Daemon"]] = {}
@@ -27,7 +28,7 @@ class Daemon(ABC):
         ...
 
     @abstractmethod
-    def _handle_shutdown(self, signum, frame):
+    def _handle_shutdown(self, signum: int, frame: FrameType | None):
         ...
 
 

@@ -1,34 +1,21 @@
 import json
 import os
 import socket
+from pathlib import Path
 
 from bdsh.daemon import Daemon
 from bdsh.network import NetworkManager
 
 
-class NetworkDaemon(Daemon, name="networkd"):
+class NetworkServer(Daemon, name="networkd"):
     def __init__(self):
         super().__init__()
-        self.server = NetworkServer()
-
-    def start(self):
-        self.server.start()
-
-    def stop(self):
-        self.server.stop()
-
-    def _handle_shutdown(self, signum, frame):
-        self.server.shutdown()
-
-
-class NetworkServer:
-    def __init__(self, socket_path="/tmp/bdsh-networkd.sock"):
-        self.socket_path = socket_path
+        self.socket_path = Path("/tmp/bdsh-networkd.sock").resolve()
         self.network = NetworkManager()
         self.server = None
         self.running = False
 
-    def shutdown(self):
+    def _handle_shutdown(self, signum, frame):
         self.running = False
 
         if self.server:
@@ -62,33 +49,24 @@ class NetworkServer:
             self.server.close()
             self.server = None
 
-        if os.path.exists(self.socket_path):
-            os.unlink(self.socket_path)
+        self.socket_path.unlink(missing_ok=True)
 
     def _create_socket(self):
         if os.path.exists(self.socket_path):
             os.unlink(self.socket_path)
 
-        self.server = socket.socket(
-            socket.AF_UNIX,
-            socket.SOCK_STREAM
-        )
+        self.server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
-        self.server.bind(self.socket_path)
+        self.server.bind(str(self.socket_path))
         self.server.listen(10)
 
     def _handle_client(self, client):
         data = client.recv(65536)
 
-        request = json.loads(
-            data.decode("utf-8")
-        )
+        request = json.loads(data.decode("utf-8"))
 
         response = self._handle_request(request)
-
-        client.sendall(
-            json.dumps(response).encode("utf-8")
-        )
+        client.sendall(json.dumps(response).encode("utf-8"))
 
     def _handle_request(self, request):
         request_id = request.get("id")
@@ -96,10 +74,7 @@ class NetworkServer:
         params = request.get("params", {})
 
         try:
-            result = self._dispatch(
-                method,
-                params
-            )
+            result = self._dispatch(method, params)
 
             return {
                 "id": request_id,
@@ -119,9 +94,7 @@ class NetworkServer:
             return self.network.hostname()
 
         if method == "resolve":
-            return self.network.resolve(
-                params["hostname"]
-            )
+            return self.network.resolve(params["hostname"])
 
         if method == "interfaces":
             return {
@@ -151,6 +124,4 @@ class NetworkServer:
                 in self.network.interface_addresses().items()
             }
 
-        raise ValueError(
-            f"Unknown method: {method}"
-        )
+        raise ValueError(f"Unknown method: {method}")
