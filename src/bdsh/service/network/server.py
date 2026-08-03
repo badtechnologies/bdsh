@@ -1,13 +1,12 @@
 import json
-import os
 import socket
 from pathlib import Path
 
-from bdsh.daemon import Daemon
-from bdsh.network import NetworkManager
+from bdsh.service import Service
+from bdsh.service.network import NetworkManager
 
 
-class NetworkServer(Daemon, name="networkd"):
+class NetworkServer(Service, name="network.badproc"):
     def __init__(self):
         super().__init__()
         self.socket_path = Path("/tmp/bdsh-networkd.sock").resolve()
@@ -52,21 +51,17 @@ class NetworkServer(Daemon, name="networkd"):
         self.socket_path.unlink(missing_ok=True)
 
     def _create_socket(self):
-        if os.path.exists(self.socket_path):
-            os.unlink(self.socket_path)
+        self.socket_path.unlink(missing_ok=True)
 
         self.server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-
         self.server.bind(str(self.socket_path))
         self.server.listen(10)
 
     def _handle_client(self, client):
-        data = client.recv(65536)
+        req = json.loads(client.recv(65536).decode("utf-8"))
+        res = self._handle_request(req)
 
-        request = json.loads(data.decode("utf-8"))
-
-        response = self._handle_request(request)
-        client.sendall(json.dumps(response).encode("utf-8"))
+        client.sendall(json.dumps(res).encode("utf-8"))
 
     def _handle_request(self, request):
         request_id = request.get("id")
@@ -90,38 +85,39 @@ class NetworkServer(Daemon, name="networkd"):
             }
 
     def _dispatch(self, method, params):
-        if method == "hostname":
-            return self.network.hostname()
+        match method:
+            case "hostname":
+                return self.network.hostname()
 
-        if method == "resolve":
-            return self.network.resolve(params["hostname"])
+            case "resolve":
+                return self.network.resolve(params["hostname"])
 
-        if method == "interfaces":
-            return {
-                name: {
-                    "flags": stats.flags,
-                    "isup": stats.isup,
-                    "duplex": stats.duplex,
-                    "speed": stats.speed,
-                    "mtu": stats.mtu,
-                }
-                for name, stats
-                in self.network.interfaces().items()
-            }
-
-        if method == "interface_addresses":
-            return {
-                name: [
-                    {
-                        "family": address.family.name,
-                        "address": address.address,
-                        "netmask": address.netmask,
-                        "broadcast": address.broadcast,
+            case "interfaces":
+                return {
+                    name: {
+                        "flags": stats.flags,
+                        "isup": stats.isup,
+                        "duplex": stats.duplex,
+                        "speed": stats.speed,
+                        "mtu": stats.mtu,
                     }
-                    for address in addresses
-                ]
-                for name, addresses
-                in self.network.interface_addresses().items()
-            }
+                    for name, stats
+                    in self.network.interfaces().items()
+                }
+
+            case "interface_addresses":
+                return {
+                    name: [
+                        {
+                            "family": address.family.name,
+                            "address": address.address,
+                            "netmask": address.netmask,
+                            "broadcast": address.broadcast,
+                        }
+                        for address in addresses
+                    ]
+                    for name, addresses
+                    in self.network.interface_addresses().items()
+                }
 
         raise ValueError(f"Unknown method: {method}")

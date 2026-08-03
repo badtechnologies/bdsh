@@ -1,7 +1,7 @@
 import json
 import socket
 
-from bdsh.daemon import DaemonUnavailableError
+from bdsh.service import ServiceUnavailableError
 
 
 class NetworkClient:
@@ -24,7 +24,7 @@ class NetworkClient:
             data = sock.recv(65536)
         except OSError as e:
             if e.errno == 2:
-                raise DaemonUnavailableError("networkd")
+                raise ServiceUnavailableError("networkd")
             else:
                 raise e
         finally:
