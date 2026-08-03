@@ -5,7 +5,7 @@ from bdsh.service import ServiceUnavailableError
 
 
 class NetworkClient:
-    def __init__(self, socket_path="/tmp/bdsh-networkd.sock"):
+    def __init__(self, socket_path="/tmp/network.badproc.sock"):
         self.socket_path = socket_path
         self._request_id = 0
 
@@ -24,7 +24,7 @@ class NetworkClient:
             data = sock.recv(65536)
         except OSError as e:
             if e.errno == 2:
-                raise ServiceUnavailableError("networkd")
+                raise ServiceUnavailableError(self.socket_path)
             else:
                 raise e
         finally:

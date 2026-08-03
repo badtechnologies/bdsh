@@ -13,6 +13,7 @@ class Service(ABC):
 
     def __init_subclass__(cls, name: str, **kwargs):
         super().__init_subclass__(**kwargs)
+        cls.name = name
         if name in SERVICES:
             raise ValueError(f"service already registered: '{name}'")
         SERVICES[name] = cls

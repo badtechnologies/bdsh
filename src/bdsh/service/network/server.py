@@ -9,7 +9,7 @@ from bdsh.service.network import NetworkManager
 class NetworkServer(Service, name="network.badproc"):
     def __init__(self):
         super().__init__()
-        self.socket_path = Path("/tmp/bdsh-networkd.sock").resolve()
+        self.socket_path = Path(f"/tmp/{self.name}.sock").resolve()
         self.network = NetworkManager()
         self.server = None
         self.running = False
