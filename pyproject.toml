@@ -35,7 +35,7 @@ Issues = "https://github.com/badtechnologies/bdsh/issues"
 
 [project.scripts]
 bdsh = "bdsh.__main__:main"
-bdsh-daemon = "bdsh.daemon.__main__:main"
+badproc = "bdsh.service.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
