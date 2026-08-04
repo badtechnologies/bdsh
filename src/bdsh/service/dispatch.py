@@ -1,6 +1,6 @@
 from threading import Thread
 
-from bdsh.service.network.service import NetworkService
+from bdsh.service.network import NetworkService
 
 _SYSTEM_SERVICES = [
     NetworkService
