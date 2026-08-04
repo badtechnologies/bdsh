@@ -35,7 +35,7 @@ class NetworkClient:
         if "error" in response:
             raise RuntimeError(response["error"]["message"])
 
-        return response["result"]
+        return response["msg"]
 
     def hostname(self):
         return self.request("hostname")
