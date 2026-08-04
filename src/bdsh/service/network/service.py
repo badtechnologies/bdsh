@@ -6,7 +6,7 @@ from bdsh.service import Service
 from bdsh.service.network import NetworkManager
 
 
-class NetworkServer(Service, name="network.badproc"):
+class NetworkService(Service, name="network.badproc"):
     def __init__(self):
         super().__init__()
         self.socket_path = Path(f"/tmp/{self.name}.sock").resolve()
