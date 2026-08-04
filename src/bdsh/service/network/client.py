@@ -1,41 +1,9 @@
-import json
-import socket
-
-from bdsh.service import ServiceUnavailableError
+from bdsh.service.ipc import IPCSocketClient
 
 
-class NetworkClient:
-    def __init__(self, socket_path="/tmp/network.badproc.sock"):
-        self.socket_path = socket_path
-        self._request_id = 0
-
-    def request(self, method, params=None):
-        if params is None:
-            params = {}
-
-        self._request_id += 1
-
-        request = {"id": self._request_id, "method": method, "params": params}
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-
-        try:
-            sock.connect(self.socket_path)
-            sock.sendall(json.dumps(request).encode())
-            data = sock.recv(65536)
-        except OSError as e:
-            if e.errno == 2:
-                raise ServiceUnavailableError(self.socket_path)
-            else:
-                raise e
-        finally:
-            sock.close()
-
-        response = json.loads(data.decode())
-
-        if "error" in response:
-            raise RuntimeError(response["error"]["message"])
-
-        return response["msg"]
+class NetworkClient(IPCSocketClient):
+    def __init__(self):
+        super().__init__("network.badproc")
 
     def hostname(self):
         return self.request("hostname")

@@ -2,7 +2,7 @@ import socket
 
 import psutil
 
-from bdsh.service import IPCSocketService
+from bdsh.service.ipc import IPCSocketService
 
 
 class NetworkService(IPCSocketService, name="network.badproc"):
