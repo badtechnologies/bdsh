@@ -1,7 +1,7 @@
-from bdsh.service.ipc import IPCSocketClient
+from bdsh.service.rpc import RPCSocketClient
 
 
-class NetworkClient(IPCSocketClient):
+class NetworkClient(RPCSocketClient):
     def __init__(self):
         super().__init__("network.badproc")
 

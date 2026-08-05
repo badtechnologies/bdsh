@@ -2,10 +2,10 @@ import socket
 
 import psutil
 
-from bdsh.service.ipc import IPCSocketService
+from bdsh.service.rpc import RPCSocketService
 
 
-class NetworkService(IPCSocketService, name="network.badproc"):
+class NetworkService(RPCSocketService, name="network.badproc"):
     def dispatch(self, method, params):
         match method:
             case "hostname":

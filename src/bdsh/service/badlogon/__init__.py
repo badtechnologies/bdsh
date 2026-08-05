@@ -6,7 +6,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 from bdsh import OSPaths
-from bdsh.service.ipc import IPCSocketService
+from bdsh.service.rpc import RPCSocketService
 
 hasher = PasswordHasher()
 
@@ -85,7 +85,7 @@ class UserManager:
         return None
 
 
-class BadLogonService(IPCSocketService, name="badlogon.badproc"):
+class BadLogonService(RPCSocketService, name="badlogon.badproc"):
     def dispatch(self, method, params):
         user_manager = UserManager()
 

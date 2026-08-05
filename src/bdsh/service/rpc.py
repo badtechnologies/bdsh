@@ -8,7 +8,7 @@ from bdsh.service import Service, ServiceUnavailableError
 _socket_path = lambda proc: f"/tmp/{proc}.sock"
 
 
-class IPCSocketService(Service, name=None):
+class RPCSocketService(Service, name=None):
     def __init__(self):
         super().__init__()
         self.socket_path = Path(_socket_path(self.name)).resolve()
@@ -87,7 +87,7 @@ class IPCSocketService(Service, name=None):
         ...
 
 
-class IPCSocketClient:
+class RPCSocketClient:
     def __init__(self, proc_name: str):
         self.socket_path = _socket_path(proc_name)
         self._request_id = 0
