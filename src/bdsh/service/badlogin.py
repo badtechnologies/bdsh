@@ -1,7 +1,7 @@
 from getpass import getpass
 
-from bdsh import get_shell_path, SHELL_COPYRIGHT
-from bdsh.user import UserManager, User
+from bdsh import SHELL_COPYRIGHT
+from bdsh.service.badlogon import UserManager, User
 
 
 class BadLoginService:

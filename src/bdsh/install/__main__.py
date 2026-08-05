@@ -8,7 +8,7 @@ from bdsh.install.util import prompt, print_header, print_task, install_python_p
 from bdsh.io.console import ConsoleTerminal
 from bdsh.session import Session
 from bdsh.shell import Shell
-from bdsh.user import UserManager, User
+from bdsh.service.badlogon import UserManager, User
 
 PYREQS_URL = "https://raw.githubusercontent.com/badtechnologies/bdsh/main/requirements.txt"
 GIT_URL = "https://github.com/badtechnologies/bdsh"

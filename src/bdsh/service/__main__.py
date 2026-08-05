@@ -3,7 +3,7 @@ import sys
 from bdsh.io.console import ConsoleTerminal
 from bdsh.session import Session
 from bdsh.shell import Shell
-from bdsh.user import User
+from bdsh.service.badlogon import User
 
 SERVICE_USER = User("BADPROC", "")
 

@@ -4,7 +4,7 @@ from pathlib import Path
 from bdsh import get_shell_path
 from bdsh.command.commands import register_commands
 from bdsh.io import TerminalIO
-from bdsh.user import User
+from bdsh.service.badlogon import User
 
 
 class Session:
