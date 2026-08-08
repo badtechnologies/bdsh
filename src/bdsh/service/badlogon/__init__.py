@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Never
+from typing import List, Never, Protocol
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 from bdsh import OSPaths
-from bdsh.service.rpc import RPCSocketService, RPCSocketClient, servicemethod
+from bdsh.service.rpc import RPCSocketService, servicemethod
 
 hasher = PasswordHasher()
 
@@ -24,7 +24,19 @@ class User:
             return False
 
 
-class BadLogonService(RPCSocketService, name="badlogon.badproc"):
+class BadLogonAPI(Protocol):
+    def save(self) -> None: ...
+
+    def load(self) -> list[User]: ...
+
+    def add(self, username, password) -> None: ...
+
+    def get_user_by_credentials(self, username, password) -> User | None: ...
+
+    def validate_username(self, username) -> bool: ...
+
+
+class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.badproc"):
     def __init__(self, userman_path: Path = OSPaths.CONFIGS.joinpath("userman")):
         super().__init__()
         self.path = userman_path
@@ -88,8 +100,3 @@ class BadLogonService(RPCSocketService, name="badlogon.badproc"):
             return user
 
         return None
-
-
-class BadLogonClient(RPCSocketClient):
-    def __init__(self):
-        super().__init__("badlogon.badproc")
