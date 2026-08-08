@@ -1,12 +1,12 @@
 from getpass import getpass
 
 from bdsh import SHELL_COPYRIGHT
-from bdsh.service.badlogon import UserManager, User
+from bdsh.service.badlogon import BadLogonService, User
 
 
 class BadLoginService:
     def __init__(self):
-        self.user_manager = UserManager()
+        self.user_manager = BadLogonService()
 
     def shell_login(self) -> User:
         print(SHELL_COPYRIGHT)
