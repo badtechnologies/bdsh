@@ -1,11 +1,22 @@
 import socket
+from typing import Protocol
 
 import psutil
 
-from bdsh.service.rpc import RPCSocketService, RPCSocketClient, servicemethod
+from bdsh.service.rpc import RPCSocketService, servicemethod
 
 
-class NetworkService(RPCSocketService, name="network.badproc"):
+class NetworkAPI(Protocol):
+    def hostname(self) -> str: ...
+
+    def interfaces(self) -> dict: ...
+
+    def interface_addresses(self) -> dict: ...
+
+    def resolve(self, hostname: str) -> str: ...
+
+
+class NetworkService(RPCSocketService, NetworkAPI, name="network.badproc"):
     @servicemethod
     def hostname(self):
         return socket.gethostname()
@@ -43,8 +54,3 @@ class NetworkService(RPCSocketService, name="network.badproc"):
             for interface, addresses
             in psutil.net_if_addrs().items()
         }
-
-
-class NetworkClient(RPCSocketClient):
-    def __init__(self):
-        super().__init__("network.badproc")
