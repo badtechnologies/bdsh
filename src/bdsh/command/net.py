@@ -5,7 +5,7 @@ from typing import List
 from icmplib import ping
 
 from bdsh.command import Command
-from bdsh.service.network.client import NetworkClient
+from bdsh.service.network import NetworkClient
 
 
 class NetCommand(Command):

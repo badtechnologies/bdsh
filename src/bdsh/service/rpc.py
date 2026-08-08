@@ -1,6 +1,5 @@
 import json
 import socket
-from abc import abstractmethod
 from pathlib import Path
 
 from bdsh.service import Service, ServiceUnavailableError
@@ -82,9 +81,18 @@ class RPCSocketService(Service, name=None):
                 }
             }
 
-    @abstractmethod
     def dispatch(self, method, params):
-        ...
+        handler = getattr(self, method, None)
+
+        if handler is None or not getattr(handler, "_is_service_method", False):
+            raise ValueError(f"service method does not exist: '{method}'")
+
+        return handler(**params)
+
+
+def servicemethod(func):
+    func._is_service_method = True
+    return func
 
 
 class RPCSocketClient:
@@ -119,3 +127,9 @@ class RPCSocketClient:
             raise RuntimeError(response["error"]["message"])
 
         return response["msg"]
+
+    def __getattr__(self, method):
+        def call(**params):
+            return self.request(method, params)
+
+        return call
