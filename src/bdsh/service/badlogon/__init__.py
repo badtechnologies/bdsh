@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Never, Protocol
+from typing import List, Never, Protocol, TypedDict
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -9,6 +9,11 @@ from bdsh import OSPaths
 from bdsh.service.rpc import RPCSocketService, servicemethod
 
 hasher = PasswordHasher()
+
+
+class SerializedUser(TypedDict):
+    username: str
+    password_hash: str
 
 
 @dataclass
@@ -27,13 +32,13 @@ class User:
 class BadLogonAPI(Protocol):
     def save(self) -> None: ...
 
-    def load(self) -> list[User]: ...
+    def load(self) -> list[SerializedUser]: ...
 
-    def add(self, username, password) -> None: ...
+    def add(self, *, username, password) -> None: ...
 
-    def get_user_by_credentials(self, username, password) -> User | None: ...
+    def get_user_by_credentials(self, *, username, password) -> SerializedUser | None: ...
 
-    def validate_username(self, username) -> bool: ...
+    def validate_username(self, *, username) -> bool: ...
 
 
 class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.badproc"):
@@ -42,7 +47,7 @@ class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.badproc"):
         self.path = userman_path
 
         try:
-            self.users = self.load()
+            self.users = [User(**usr) for usr in self.load()]
         except FileNotFoundError:
             self.users = []
             self.save()
@@ -54,8 +59,8 @@ class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.badproc"):
                 f.write(f"{user.username}:{user.password_hash}\n")
 
     @servicemethod
-    def load(self) -> List[User] | Never:
-        users = []
+    def load(self) -> list[SerializedUser] | Never:
+        users: list[SerializedUser] = []
 
         with open(self.path, "r", encoding="utf-8") as f:
             for line in f:
@@ -64,20 +69,20 @@ class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.badproc"):
                 if not line:
                     continue
 
-                username, password_hash = line.split(":", 1)
-                users.append(User(username, password_hash))
+                a, b = line.split(":", 1)
+                users.append(SerializedUser(username=a, password_hash=b))
 
-                OSPaths.PROFILES.joinpath(username).mkdir(exist_ok=True)
+                OSPaths.PROFILES.joinpath(a).mkdir(exist_ok=True)
 
         return users
 
     @servicemethod
-    def validate_username(self, username: str) -> bool:
+    def validate_username(self, *, username: str) -> bool:
         return not (':' in username)
 
     @servicemethod
-    def add(self, username: str, password: str) -> None:
-        if not self.validate_username(username):
+    def add(self, *, username: str, password: str) -> None:
+        if not self.validate_username(username=username):
             raise ValueError("username contains illegal characters")
 
         if username.strip() == '' or password.strip() == '':
@@ -90,13 +95,13 @@ class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.badproc"):
         self.users.append(User(username, hasher.hash(password)))
 
     @servicemethod
-    def get_user_by_credentials(self, username: str, password: str) -> User | None:
+    def get_user_by_credentials(self, *, username: str, password: str) -> SerializedUser | None:
         for user in self.users:
             if user.username != username: continue
 
             result = user.try_login(password)
             if not result: continue
 
-            return user
+            return SerializedUser(username=user.username, password_hash=user.password_hash)
 
         return None

@@ -1,9 +1,11 @@
 from threading import Thread
 
+from bdsh.service.badlogon import BadLogonService
 from bdsh.service.network import NetworkService
 
 _SYSTEM_SERVICES = [
-    NetworkService
+    NetworkService,
+    BadLogonService
 ]
 
 

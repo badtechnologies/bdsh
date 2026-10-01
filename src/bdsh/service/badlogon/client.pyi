@@ -1,6 +1,18 @@
-from bdsh.service.badlogon import BadLogonAPI
+from bdsh.service.badlogon import SerializedUser
 from bdsh.service.rpc import RPCSocketClient
 
 
-class BadLogonClient(RPCSocketClient, BadLogonAPI):
+class BadLogonClient(RPCSocketClient):
     def __init__(self): ...
+
+    def save(self) -> None: ...
+
+    def load(self) -> list[SerializedUser]: ...
+
+    def add(self, *, username: str, password: str) -> None: ...
+
+    def get_user_by_credentials(
+        self, *, username: str, password: str
+    ) -> SerializedUser | None: ...
+
+    def validate_username(self, *, username: str) -> bool: ...
