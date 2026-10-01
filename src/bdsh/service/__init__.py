@@ -7,6 +7,8 @@ SERVICES: dict[str, Type["Service"]] = {}
 
 
 class Service(ABC):
+    name: str
+
     def __init__(self):
         signal.signal(signal.SIGTERM, self._handle_shutdown)
         signal.signal(signal.SIGINT, self._handle_shutdown)
