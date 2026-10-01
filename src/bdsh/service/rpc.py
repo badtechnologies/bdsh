@@ -3,6 +3,7 @@ import socket
 from pathlib import Path
 
 from bdsh.service import Service, ServiceUnavailableError
+from bdsh.util.serializing import validate_json_value
 
 _socket_path = lambda proc: f"/tmp/{proc}.sock"
 
@@ -56,17 +57,21 @@ class RPCSocketService(Service, name=None):
 
     def _handle_client(self, client):
         req = json.loads(client.recv(65536).decode("utf-8"))
+        validate_json_value(req, "request")
         res = self._handle_request(req)
 
+        validate_json_value(res, "response")
         client.sendall(json.dumps(res).encode("utf-8"))
 
     def _handle_request(self, request):
         request_id = request.get("id")
         method = request.get("method")
         params = request.get("params", {})
+        validate_json_value(params, "request.params")
 
         try:
             result = self.dispatch(method, params)
+            validate_json_value(result, "response.msg")
 
             return {
                 "id": request_id,
@@ -77,6 +82,7 @@ class RPCSocketService(Service, name=None):
             return {
                 "id": request_id,
                 "error": {
+                    "type": type(e).__name__,
                     "message": str(e)
                 }
             }
@@ -95,12 +101,18 @@ def servicemethod(func):
     return func
 
 
+class RPCError(Exception):
+    def __init__(self, msg: str, *, err_type: str | None = None):
+        super().__init__(f"{err_type or "generic error"}: {msg}")
+
+
 class RPCSocketClient:
     def __init__(self, proc_name: str):
         self.socket_path = _socket_path(proc_name)
         self._request_id = 0
 
     def request(self, method, params=None):
+        validate_json_value(params, "request.params")
         if params is None:
             params = {}
 
@@ -122,9 +134,10 @@ class RPCSocketClient:
             sock.close()
 
         response = json.loads(data.decode())
+        validate_json_value(response, "response")
 
         if "error" in response:
-            raise RuntimeError(response["error"]["message"])
+            raise RPCError(response["error"]["message"], err_type=response["error"]["type"])
 
         return response["msg"]
 
