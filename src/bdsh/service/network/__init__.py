@@ -13,7 +13,7 @@ class NetworkAPI(Protocol):
 
     def interface_addresses(self) -> dict: ...
 
-    def resolve(self, hostname: str) -> str: ...
+    def resolve(self, *, hostname: str) -> str: ...
 
 
 class NetworkService(RPCSocketService, NetworkAPI, name="network.badproc"):
@@ -21,8 +21,9 @@ class NetworkService(RPCSocketService, NetworkAPI, name="network.badproc"):
     def hostname(self):
         return socket.gethostname()
 
+    # noinspection PyProtocol
     @servicemethod
-    def resolve(self, hostname: str):
+    def resolve(self, *, hostname: str) -> str:
         return socket.gethostbyname(hostname)
 
     @servicemethod

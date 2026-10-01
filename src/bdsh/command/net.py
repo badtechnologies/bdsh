@@ -66,7 +66,7 @@ class PingCommand(Command):
             return
 
         try:
-            host = NetworkClient().resolve(args.host)
+            host = NetworkClient().resolve(hostname=args.host)
         except socket.gaierror:
             raise ValueError(f"failed to resolve host: \"{args.host}\"")
 
