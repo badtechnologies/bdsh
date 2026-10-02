@@ -1,6 +1,6 @@
 # BadOS Dynamic Shell (bdsh)
 
-Read the docs at 🔗 [badtechnologies.github.io/bdsh](https://badtechnologies.github.io/bdsh).
+Read the docs at [badtechnologies.github.io/bdsh](https://badtechnologies.github.io/bdsh).
 
 ## Quick Install
 
@@ -11,27 +11,26 @@ python3 -m pip install bdsh
 python3 -m bdsh.install
 ```
 
-After completing setup, bdsh should be good to go!
+The installer creates the shell root, config directory, and first user.
 
 ## Installation (Manual)
 
-1. **Download the latest release**
+1. Download the latest release.
 
-   Or, you can directly download the `bdsh` module from PyPI.
+   Or, install the package from PyPI.
 
-2. **Setup bdsh:**
+2. Set up bdsh:
 
-    ```sh
-    python3 -m bdsh.install
-    ```
+   ```sh
+   python3 -m bdsh.install
+   ```
 
-   Follow the on-screen instructions.
+   Follow the prompts. The setup script creates the `bdsh/` directory tree and config files.
 
-   Once the `/bdsh` directory and your configs are prepared, you can start bdsh with `bdsh` to launch the interactive
-   shell.
+3. Start bdsh:
 
-3. **Launch bdsh:**
+   ```sh
+   bdsh
+   ```
 
-    ```sh
-    bdsh
-    ```
+The shell prompts for a username and password, then starts an interactive session.

@@ -1,24 +1,44 @@
 ---
-title: BadOS Package Manager
-nav_order: 4
+title: Package Manager
+nav_order: 5
 ---
 
 # BadOS Package Manager (bpm)
 
-Use the BPM (BadOS Package Manager) to install, remove, or otherwise manage packages.
+Use `bpm` to install, remove, and upgrade packages.
 
-> #### ℹ️ Note
-> When setting up bdsh for the first time, `bpm` is included in the setup script.
-> If your bdsh installation does not have `bpm`, something went wrong; reconfigure or reinstall bdsh.
+The package manager is included in the shell. It resolves package metadata from the configured package repo and installs binaries and Python dependencies.
 
-## Example: installing a package:
+## Install a package
 
 ```sh
-bpm install <package name>
+bpm install <package>
 ```
 
-## Example: removing a package:
+## Remove a package
 
 ```sh
-bpm remove <package name>
+bpm remove <package>
 ```
+
+## Upgrade a package
+
+```sh
+bpm upgrade <package>
+```
+
+## Options
+
+```sh
+bpm install -y <package>
+bpm install -r owner/repo/branch <package>
+```
+
+- `-y` skips the confirmation prompt.
+- `-r` changes the package repo in the format `owner/repo/branch`.
+
+## Package metadata
+
+The package manager reads `bpl.json` from the package repo and installs each binary into `bdsh/app/<id>/<version>/`.
+
+It also stores package metadata in `bdsh/cfg/bpm/*.bpmstore`.

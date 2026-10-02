@@ -1,33 +1,42 @@
 ---
 title: File Structure
-nav_order: 3
+nav_order: 4
 ---
 
 # System File Structure
 
-This document provides an overview of the file and folder structure of bdsh (Bados Dynamic Shell).
-
-The system file structure will be created automatically with the bdsh installation tool (install.py).
+The installer creates the bdsh directory tree under the current working directory.
 
 ## Root Directory
 
-- **bdsh/**: main directory
-  - **cfg/**: configuration files
-  - **prf/**: profile-specific home directories
-  - **exec/**: scripts and binaries
+- **bdsh/**: shell root
+  - **app/**: application installs managed by bpm
+  - **cfg/**: configuration and package metadata
+  - **cfg/bpm/**: package store metadata files
+  - **cfg/userman**: user database
+  - **exec/**: executable scripts and binaries for the shell
+  - **prf/**: profile directories for each user
 
-## Profile-specific files
+## Profile directories
 
-Profile-specific home directories contain certain local profile files, such as:
+Each user gets a folder under `bdsh/prf/<username>`. This is the directory the shell moves into after login.
 
-- **cfg/**: profile configuration files
-- **exec/**: profile scripts and binaries
+## Runtime paths
 
-## Binary execution
+bdsh defines the following runtime paths in `bdsh.__init__`:
 
-bdsh runs binaries in this order:
+- `OSPaths.ROOT`
+- `OSPaths.APPLICATIONS`
+- `OSPaths.CONFIGS`
+- `OSPaths.EXECUTABLES`
+- `OSPaths.PROFILES`
 
-1. definitions (set with `def` command)
-2. bdsh scripts: e.g. echo, exit
-3. exec/
-4. prf/[username]/exec/
+## Command resolution
+
+bdsh resolves commands in this order:
+
+1. definitions from the current session
+2. built in commands
+3. executables in `bdsh/exec/`
+
+The shell does not currently search profile directories for executables during command resolution.

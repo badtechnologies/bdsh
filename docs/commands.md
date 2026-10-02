@@ -1,25 +1,29 @@
 ---
 title: Commands
-nav_order: 2
+nav_order: 3
 ---
 
 # BDSH Commands
 
-bdsh contains many commands for you to use, packed inside the shell.
+bdsh ships with a small built in command set.
 
-Some are self explainatory, others will be explained here.
+The shell resolves commands in this order: definitions, built in commands, then executable files in `bdsh/exec`.
 
-See the order that bdsh finds and runs commands [here](file-structure.md#binary-execution).
+## help
 
-## ld (list directory)
+Shows the available commands or the help text for one command.
 
-Prints all files and folders in the current directory, or the directory passed as an argument
+## echo
 
-## def (define)
+Prints text to the terminal.
 
-Binds keywords to definitions. Similar to a shortcut, but for commands.
+## ld
 
-### Example (`hello -> echo hi`)
+Lists the files and folders in the current directory. `ls` and `dir` resolve to this command.
+
+## def
+
+Creates a command definition. It works like a shortcut for shell commands.
 
 ```bdsh
 /$ def hello echo hi
@@ -28,14 +32,46 @@ defined 'hello' to run 'echo hi'
 hi
 ```
 
-## throw
-
-Throws an exception.
-
 ## go
 
-Goes to a directory, similar to `cd` on other operating systems.
+Changes the current directory. `~` resolves to the current user's home folder.
 
 ## peek
 
-Peeks into a file, and prints its contents to the terminal.
+Prints the contents of a file.
+
+## cwd
+
+Prints the current working directory.
+
+## ver
+
+Prints the shell banner.
+
+## throw
+
+Raises an exception. This is useful for testing shell error handling.
+
+## exit
+
+Exits the shell.
+
+## bpm
+
+Runs the BadOS Package Manager. Supported actions are `install`, `remove`, and `upgrade`.
+
+## net
+
+Shows network interface information. Pass an interface name to limit the output.
+
+## hostname
+
+Prints the current system hostname.
+
+## ping
+
+Pings a host with a configurable timeout and packet count.
+
+## badproc
+
+Starts a registered system service. See [Services](services.md) for more details.

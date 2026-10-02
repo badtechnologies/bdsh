@@ -1,36 +1,31 @@
 ---
 title: Packages
-nav_order: 6
+nav_order: 7
 ---
 
 # Packages
 
-This folder contains documentation for first- and third-party packages.
+This folder contains documentation for first- and third-party bdsh packages.
 
-## Creating packages
+## Creating a package
 
-Packages should be contained in a folder with the name of the package.
+Package repos are organized by package name.
 
-In the package root, create a `bpl.json` file, with the following contents:
+Inside the package root, create a `bpl.json` file like this:
 
 ```json
 {
   "name": "example bdsh package",
-  // unique id for identifing this package, must be the same as the folder name
   "id": "example-bdsh-package",
   "version": "1.0.0",
   "author": "Me!",
-  // files here will be added to the users 'exec' folder
   "binaries": {
     "example": "example.py"
   },
-  // files here will run on install
-  "setupScripts": [
-    "setup.py"
-  ],
+  "setupScripts": ["setup.py"],
   "homepage": "https://example.com",
   "license": "MIT",
-  "shellVersion": "^0.3.0",
+  "shellVersion": "0.3.0",
   "dependencies": {
     "packagename": "*",
     "another-package": "^2.0.0"
@@ -41,27 +36,17 @@ In the package root, create a `bpl.json` file, with the following contents:
 }
 ```
 
-You can access a JSON schema for the `bpl.json` file
-at <https://raw.githubusercontent.com/badtechnologies/bpl/main/bpl.schema.json>
+The `binaries` field points to the files to download. The `setupScripts` list runs after installation. `shellVersion` is checked against the current bdsh version before installation.
 
-Most of this is self-explanatory. The `binaries` key should point to the script(s) to download. `"example.py"` tells bpm
-to download `example.py` from your package root.
+Only `name`, `id`, `version`, `author`, and `shellVersion` are required to produce a valid package. The `id` should match the directory name in the package repo.
 
-Only `name`, `id` `version`, `author`, and `shellVersion` must be included to make a valid package. The `id` must match
-the folder name on the package repo (i.e. BPL).
+## Installing packages
 
-Not including `binaries` will not download any binaries for your package; useful for package groups.
-
-Not including `dependencies` or `pythonDependencies` will not download any dependencies.
-
-## Installing Packages
-
-Use the BPM (BadOS Package Manager) to install, remove, or otherwise manage packages.
-
-Example: installing a package:
+Use the package manager to install or remove packages.
 
 ```sh
-bpm install <package name>
+bpm install <package>
+bpm remove <package>
 ```
 
-For more information, run `bpm help`, or see the [bpm docs](../bpm.md).
+For more information, see [Package Manager](../bpm.md).
