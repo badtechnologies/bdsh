@@ -9,13 +9,10 @@ The installer creates the bdsh directory tree under the current working director
 
 ## Root Directory
 
-- **bdsh/**: shell root
-  - **app/**: application installs managed by bpm
-  - **cfg/**: configuration and package metadata
-  - **cfg/bpm/**: package store metadata files
-  - **cfg/userman**: user database
-  - **exec/**: executable scripts and binaries for the shell
-  - **prf/**: profile directories for each user
+- **app/**: application installs managed by bpm
+- **cfg/**: configuration and package metadata
+- **exec/**: executable scripts and binaries for the shell
+- **prf/**: profile directories for each user
 
 ## Profile directories
 
