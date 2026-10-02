@@ -67,25 +67,7 @@ class Shell:
 
         while self.session.is_running:
             try:
-                if not buffer:
-                    self.session.io.print(self.get_prompt())
-
-                char = self.session.io.read(1)
-
-                if char in {'\n', '\r'}:
-                    if char == '\r':
-                        self.session.io.print('\n')
-                    self.execute(''.join(buffer))
-                    buffer.clear()
-                elif char == '\x03':  # ^C
-                    buffer.clear()
-                elif char == '\x7f':  # backspace
-                    if len(buffer) <= 0:
-                        continue
-                    self.session.io.print('\x08 \x08')
-                    buffer.pop()
-                else:
-                    buffer.append(char)
+                self._process_input(buffer)
 
             except KeyboardInterrupt:
                 buffer.clear()
@@ -95,3 +77,24 @@ class Shell:
                 buffer.clear()
                 self.session.io.print(f"bdsh: unhandled exception: {e}{NL}{self.get_prompt()}")
                 continue
+
+    def _process_input(self, buffer: list[str]):
+        if not buffer:
+            self.session.io.print(self.get_prompt())
+
+        char = self.session.io.read(1)
+
+        if char in {'\n', '\r'}:
+            if char == '\r':
+                self.session.io.print('\n')
+            self.execute(''.join(buffer))
+            buffer.clear()
+        elif char == '\x03':  # ^C
+            buffer.clear()
+        elif char == '\x7f':  # backspace
+            if len(buffer) <= 0:
+                return
+            self.session.io.print('\x08 \x08')
+            buffer.pop()
+        else:
+            buffer.append(char)
