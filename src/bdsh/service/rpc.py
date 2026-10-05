@@ -2,13 +2,13 @@ import json
 import socket
 from pathlib import Path
 
-from bdsh.service import Service, ServiceUnavailableError
+from bdsh.service import BadOSService, ServiceUnavailableError
 from bdsh.util.serializing import validate_json_value
 
 _socket_path = lambda proc: f"/tmp/{proc}.sock"
 
 
-class RPCSocketService(Service, name=None):
+class RPCSocketService(BadOSService, name=None):
     def __init__(self):
         super().__init__()
         self.socket_path = Path(_socket_path(self.name)).resolve()

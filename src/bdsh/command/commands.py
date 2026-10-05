@@ -2,7 +2,7 @@ from typing import List, Dict, TYPE_CHECKING
 
 from bdsh import NL, SHELL_COPYRIGHT
 from bdsh.command import Command, AnonymousCommand
-from bdsh.command.badproc import BadProcessManagerCommand
+from bdsh.command.boss import BOSSCommand
 from bdsh.command.bpm import BadOSPackageManagerCommand
 from bdsh.command.net import NetCommand, HostnameCommand, PingCommand
 
@@ -112,6 +112,6 @@ def register_commands(session: Session) -> Dict[str, Command]:
         "net": NetCommand(session),
         "hostname": HostnameCommand(session),
         "ping": PingCommand(session),
-        "badproc": BadProcessManagerCommand(session),
+        "boss": BOSSCommand(session),
     }
 

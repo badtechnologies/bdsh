@@ -3,10 +3,10 @@ from abc import ABC, abstractmethod
 from types import FrameType
 from typing import Type
 
-SERVICES: dict[str, Type["Service"]] = {}
+SERVICES: dict[str, Type["BadOSService"]] = {}
 
 
-class Service(ABC):
+class BadOSService(ABC):
     name: str
 
     def __init__(self):

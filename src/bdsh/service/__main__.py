@@ -10,7 +10,7 @@ SERVICE_USER = User("BADPROC", "")
 
 def main():
     virtsh = Shell(Session(ConsoleTerminal(), SERVICE_USER))
-    virtsh.execute("badproc " + " ".join(sys.argv[1:]))
+    virtsh.execute("boss " + " ".join(sys.argv[1:]))
 
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Never, Protocol, TypedDict
+from typing import Never, Protocol, TypedDict
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -41,7 +41,7 @@ class BadLogonAPI(Protocol):
     def validate_username(self, *, username: str) -> bool: ...
 
 
-class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.badproc"):
+class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.sys"):
     def __init__(self, userman_path: Path = OSPaths.CONFIGS.joinpath("userman")):
         super().__init__()
         self.path = userman_path

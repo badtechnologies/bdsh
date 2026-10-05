@@ -16,7 +16,7 @@ class NetworkAPI(Protocol):
     def resolve(self, *, hostname: str) -> str: ...
 
 
-class NetworkService(RPCSocketService, NetworkAPI, name="network.badproc"):
+class NetworkService(RPCSocketService, NetworkAPI, name="network.sys"):
     @servicemethod
     def hostname(self):
         return socket.gethostname()

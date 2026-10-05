@@ -5,10 +5,10 @@ from typing import List
 
 import bdsh
 from bdsh.command import Command
-from bdsh.service import SERVICES, Service
+from bdsh.service import SERVICES, BadOSService
 
 
-def _get_service(name: str) -> Service:
+def _get_service(name: str) -> BadOSService:
     if name not in SERVICES:
         raise ValueError(f"unknown service: {name}")
 
@@ -20,16 +20,16 @@ def _discover_services():
         importlib.import_module(module.name)
 
 
-class BadProcessManagerCommand(Command):
+class BOSSCommand(Command):
     def __init__(self, session):
         super().__init__(session)
         _discover_services()
 
-        self.parser = argparse.ArgumentParser(description="BadProc Service Manager", color=False)
+        self.parser = argparse.ArgumentParser(description="BadOS Service Supervisor (BOSS)", color=False)
         self.parser.add_argument('service', type=str, help='name of service to launch')
 
     def execute(self, args: List[str]):
-        self.session.io.println("BadProc Service Manager, " + bdsh.SHELL_COPYRIGHT)
+        self.session.io.println("BadOS Service Supervisor, " + bdsh.SHELL_COPYRIGHT)
 
         args = self.parser.parse_args(args[1:])
         service = _get_service(args.service)
