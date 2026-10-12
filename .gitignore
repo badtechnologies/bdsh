@@ -168,5 +168,5 @@ cython_debug/
 _site
 Gemfile.lock
 
-#buildroot
-buildroot/src
+# kernel
+kernel/buildroot
