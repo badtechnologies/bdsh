@@ -170,3 +170,4 @@ Gemfile.lock
 
 # kernel
 kernel/buildroot
+!rootfs-overlay/

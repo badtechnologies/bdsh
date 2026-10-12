@@ -34,3 +34,16 @@ The installer creates the shell root, config directory, and first user.
    ```
 
 The shell prompts for a username and password, then starts an interactive session.
+
+## Minimal boot profile
+
+For a minimal boot prompt that does not start services or request a BadLogon
+login, run:
+
+```sh
+bdsh-init
+```
+
+The same entry point is available as `python3 -m bdsh.init`. It uses a fixed
+`/` starting directory and only standard-library shell commands. The `exit`
+and `quit` commands are disabled so the init process remains alive.
