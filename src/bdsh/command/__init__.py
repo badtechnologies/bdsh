@@ -23,10 +23,10 @@ class AnonymousCommand(Command):
     def __init__(self, session: Session, execute: Callable[[List[str]], Any], help_msg: str):
         super().__init__(session)
         self.help_msg = help_msg
-        self.execute = execute
+        self.executor = execute
 
     def execute(self, args: List[str]):
-        self.execute(args)
+        self.executor(args)
 
     def help(self) -> str:
         return self.help_msg

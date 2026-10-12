@@ -3,7 +3,7 @@ import importlib
 import pkgutil
 from typing import List
 
-import bdsh
+import bdsh.service
 from bdsh.command import Command
 from bdsh.service import SERVICES, BadOSService
 
@@ -28,10 +28,10 @@ class BOSSCommand(Command):
         self.parser = argparse.ArgumentParser(description="BadOS Service Supervisor (BOSS)", color=False)
         self.parser.add_argument('service', type=str, help='name of service to launch')
 
-    def execute(self, args: List[str]):
+    def execute(self, argv: List[str]):
         self.session.io.println("BadOS Service Supervisor, " + bdsh.SHELL_COPYRIGHT)
 
-        args = self.parser.parse_args(args[1:])
+        args = self.parser.parse_args(argv[1:])
         service = _get_service(args.service)
         try:
             self.session.io.println(f"Attempting to start {args.service}... SIGINT to stop")
@@ -43,4 +43,4 @@ class BOSSCommand(Command):
             service.stop()
 
     def help(self) -> str:
-        pass
+        return self.parser.format_help()
