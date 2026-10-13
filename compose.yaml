@@ -13,6 +13,7 @@ services:
     environment:
       TERM: xterm-256color
     volumes:
+      - ./:/workspace/bdsh:ro
       - ./kernel/external:/workspace/kernel/external
       - ./kernel/artifacts:/workspace/kernel/artifacts
       - bados-build:/build

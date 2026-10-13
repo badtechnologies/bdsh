@@ -33,6 +33,15 @@ initialize_config()
 	buildroot_make defconfig BR2_DEFCONFIG="$DEFCONFIG"
 }
 
+update_config()
+{
+	if ! grep -qx 'BR2_PACKAGE_PYTHON_BDSH=y' "$OUT/.config"; then
+		sed -i '/^# BR2_PACKAGE_PYTHON_BDSH is not set$/d' "$OUT/.config"
+		printf '\nBR2_PACKAGE_PYTHON_BDSH=y\n' >> "$OUT/.config"
+	fi
+	buildroot_make olddefconfig
+}
+
 command_name=${1:-all}
 if [ "$#" -gt 0 ]; then
 	shift
@@ -47,12 +56,18 @@ case "$command_name" in
 		buildroot_make linux-reconfigure "$@"
 		exit
 		;;
+	olddefconfig)
+		update_config
+		exit
+		;;
 	build)
 		if [ ! -f "$OUT/.config" ]; then
 			echo "No persistent Buildroot config found; initializing from the tracked defconfig."
 			initialize_config
 		fi
+		update_config
 		buildroot_make linux-reconfigure
+		buildroot_make python-bdsh-dirclean
 		buildroot_make all "$@"
 		exit
 		;;
@@ -107,8 +122,7 @@ case "$command_name" in
 		fi
 
 		for path in \
-			"$OUT/target/init" \
-			"$OUT/target/sbin/bdsh-init" \
+			"$OUT/target/usr/bin/bdsh-init" \
 			"$OUT/target/usr/bin/python3" \
 			"$OUT/images/bzImage" \
 			"$OUT/images/rootfs.cpio.gz"
@@ -119,8 +133,8 @@ case "$command_name" in
 			fi
 		done
 
-		if [ ! -x "$OUT/target/init" ] || [ ! -x "$OUT/target/sbin/bdsh-init" ]; then
-			echo "Init programs must be executable in the target filesystem." >&2
+		if [ ! -x "$OUT/target/usr/bin/bdsh-init" ]; then
+			echo "The bdsh-init console script must be executable in the target filesystem." >&2
 			exit 1
 		fi
 

@@ -43,6 +43,10 @@ class BootShell(cmd.Cmd):
         """Print the shell's current directory."""
         print(self.cwd, file=self.stdout)
 
+    def do_checkpid(self, argument: str) -> None:
+        """Print the process ID running the init shell."""
+        print(os.getpid(), file=self.stdout)
+
     def do_ls(self, argument: str) -> None:
         """List a directory, defaulting to the shell's current directory."""
         try:

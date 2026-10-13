@@ -3,7 +3,9 @@
 Buildroot is pinned to 2025.02.18 in `compose.yaml`. Docker Compose builds a
 Linux build environment; named Docker volumes hold Buildroot's output and
 download cache, keeping large build operations off macOS's shared workspace.
-Only the small boot images are exported to `kernel/artifacts/`.
+The `bdsh` Python project is mounted read-only into the container and installed
+into the target root filesystem as a Buildroot Python package. Only the small
+boot images are exported to `kernel/artifacts/`.
 
 Install Docker Desktop and QEMU on macOS, then run these commands from the
 repository root:
@@ -41,6 +43,11 @@ to refresh just the kernel configuration without building the whole image.
 QEMU terminal with Ctrl-A then X. The CPIO image is an initramfs: its root
 filesystem is recreated in RAM on every boot, so it is for boot testing, not
 persistent storage.
+
+The kernel starts `/usr/bin/bdsh-init` as PID 1. Buildroot installs this
+console script from the project's `bdsh-init = "bdsh.init:main"` entry point,
+so it invokes `bdsh.init:main` directly. Linux mounts devtmpfs before starting
+init because the kernel config enables `CONFIG_DEVTMPFS_MOUNT`.
 
 Useful optional settings:
 

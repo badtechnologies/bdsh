@@ -27,6 +27,14 @@ class BootShellTests(unittest.TestCase):
 
         self.assertEqual(shell.cwd, Path("/"))
 
+    def test_checkpid_prints_current_process_id(self) -> None:
+        shell, output = self.make_shell()
+
+        with patch("bdsh.init.os.getpid", return_value=1):
+            shell.do_checkpid("")
+
+        self.assertEqual(output.getvalue(), "1\n")
+
     def test_reaper_waits_until_no_children_are_ready(self) -> None:
         with patch("bdsh.init.os.waitpid", side_effect=[(123, 0), (0, 0)]) as waitpid:
             reap_children(0, None)
