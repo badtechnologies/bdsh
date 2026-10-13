@@ -1,5 +1,5 @@
-config BR2_PACKAGE_PYTHON_BDSH
-	bool "python-bdsh"
+config BR2_PACKAGE_BDSH
+	bool "bdsh"
 	depends on BR2_PACKAGE_PYTHON3
 	help
 	  Bad Technologies' Python shell, installed from the project source tree.

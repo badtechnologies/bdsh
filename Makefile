@@ -68,11 +68,9 @@ endif
 	}
 	$(QEMU) \
 		-m "$(MEMORY)" \
-		-object rng-random,filename=/dev/urandom,id=rng0 \
-		-device virtio-rng-pci,rng=rng0 \
 		-kernel "$(ARTIFACTS)/bzImage" \
 		-initrd "$(ARTIFACTS)/rootfs.cpio.gz" \
-		-append "console=ttyS0,115200 init=/usr/bin/bdsh-init" \
+		-append "console=ttyS0,115200" \
 		-nographic
 
 os-clean:

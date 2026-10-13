@@ -1,1 +1,1 @@
-source "$BR2_EXTERNAL_BADOS_KERNEL_PATH/package/python-bdsh/Config.in"
+source "$BR2_EXTERNAL_BADOS_KERNEL_PATH/package/bdsh/Config.in"

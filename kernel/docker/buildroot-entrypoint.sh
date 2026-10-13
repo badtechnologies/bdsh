@@ -35,9 +35,9 @@ initialize_config()
 
 update_config()
 {
-	if ! grep -qx 'BR2_PACKAGE_PYTHON_BDSH=y' "$OUT/.config"; then
-		sed -i '/^# BR2_PACKAGE_PYTHON_BDSH is not set$/d' "$OUT/.config"
-		printf '\nBR2_PACKAGE_PYTHON_BDSH=y\n' >> "$OUT/.config"
+	if ! grep -qx 'BR2_PACKAGE_BDSH=y' "$OUT/.config"; then
+		sed -i '/^# BR2_PACKAGE_BDSH is not set$/d' "$OUT/.config"
+		printf '\nBR2_PACKAGE_BDSH=y\n' >> "$OUT/.config"
 	fi
 	buildroot_make olddefconfig
 }
@@ -67,7 +67,7 @@ case "$command_name" in
 		fi
 		update_config
 		buildroot_make linux-reconfigure
-		buildroot_make python-bdsh-dirclean
+		buildroot_make bdsh-dirclean
 		buildroot_make all "$@"
 		exit
 		;;
