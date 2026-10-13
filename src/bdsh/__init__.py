@@ -22,4 +22,4 @@ class OSPaths:
 
     @classmethod
     def all(cls) -> list[Path]:
-        return [value for value in vars(cls).values()]
+        return [value for value in vars(cls).values() if isinstance(value, Path)]

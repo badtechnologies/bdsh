@@ -52,7 +52,7 @@ class Shell:
         self.execute("ver")
         self.session.is_running = True
 
-        if not self.session.cwd.is_dir(follow_symlinks=True):
+        if not self.session.cwd.is_dir():
             self.fatal("bdsh: current directory does not exist or is not a folder", 130)
 
         # handle authentication

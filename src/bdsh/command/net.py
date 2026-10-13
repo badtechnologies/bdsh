@@ -2,8 +2,6 @@ import argparse
 import socket
 from typing import List
 
-from icmplib import ping
-
 from bdsh.command import Command
 from bdsh.service.network.client import NetworkClient
 
@@ -53,7 +51,7 @@ class HostnameCommand(Command):
 
 
 class PingCommand(Command):
-    parser = argparse.ArgumentParser(color=False, add_help=False)
+    parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('host', type=str, help='host to ping')
     parser.add_argument('-c', '--count', type=int, default=4, help='amount of packets to send')
     parser.add_argument('-t', '--timeout', type=int, default=2, help='seconds to timeout')
@@ -64,6 +62,8 @@ class PingCommand(Command):
             args = self.parser.parse_args(args[1:])
         except SystemExit:
             return
+
+        from icmplib import ping
 
         try:
             host = NetworkClient().resolve(hostname=args.host)

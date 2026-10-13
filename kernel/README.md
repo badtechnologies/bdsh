@@ -44,10 +44,17 @@ QEMU terminal with Ctrl-A then X. The CPIO image is an initramfs: its root
 filesystem is recreated in RAM on every boot, so it is for boot testing, not
 persistent storage.
 
-The kernel starts `/usr/bin/bdsh-init` as PID 1. Buildroot installs this
-console script from the project's `bdsh-init = "bdsh.init:main"` entry point,
-so it invokes `bdsh.init:main` directly. Linux mounts devtmpfs before starting
-init because the kernel config enables `CONFIG_DEVTMPFS_MOUNT`.
+The QEMU kernel command line explicitly selects
+`rdinit=/usr/bin/bdsh-init` as PID 1. `rdinit` is required because the CPIO
+initramfs contains its own `/init`; `init=` alone does not replace that
+initramfs entry. Buildroot installs the selected console script from the
+project's `bdsh-init = "bdsh.init:main"` entry point, so it invokes
+`bdsh.init:main` directly. Linux mounts devtmpfs before starting init because
+the kernel config enables `CONFIG_DEVTMPFS_MOUNT`. QEMU exposes its host
+entropy source through a virtio RNG device; Python requires kernel random data
+during startup. The Buildroot `bdsh` package also includes the Python
+dependencies used by the shell, including ICMP support from the separate
+`python-icmplib` package.
 
 Useful optional settings:
 

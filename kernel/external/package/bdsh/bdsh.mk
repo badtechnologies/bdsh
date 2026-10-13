@@ -10,7 +10,7 @@ BDSH_SITE_METHOD = local
 BDSH_SETUP_TYPE = pep517
 BDSH_LICENSE = LicenseRef-Proprietary
 BDSH_LICENSE_FILES = LICENSE
-BDSH_DEPENDENCIES = host-python-setuptools
+BDSH_DEPENDENCIES = host-python-setuptools python-argon2-cffi python-icmplib python-psutil python-requests
 
 define BDSH_CLEAN_STALE_BUILD_OUTPUT
 	rm -rf $(@D)/build $(@D)/dist

@@ -1,0 +1,5 @@
+config BR2_PACKAGE_PYTHON_ICMPLIB
+	bool "python-icmplib"
+	depends on BR2_PACKAGE_PYTHON3
+	help
+	  A pure Python library for sending and receiving ICMP packets.

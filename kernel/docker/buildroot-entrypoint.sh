@@ -67,6 +67,7 @@ case "$command_name" in
 		fi
 		update_config
 		buildroot_make linux-reconfigure
+		buildroot_make python3-reconfigure
 		buildroot_make bdsh-dirclean
 		buildroot_make all "$@"
 		exit
@@ -135,6 +136,11 @@ case "$command_name" in
 
 		if [ ! -x "$OUT/target/usr/bin/bdsh-init" ]; then
 			echo "The bdsh-init console script must be executable in the target filesystem." >&2
+			exit 1
+		fi
+
+		if ! find "$OUT/target/usr/lib" -type f -name 'zlib*.so' -print -quit | grep -q .; then
+			echo "The target Python zlib extension is missing; bdsh cannot import requests." >&2
 			exit 1
 		fi
 
