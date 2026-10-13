@@ -169,6 +169,5 @@ _site
 Gemfile.lock
 
 # kernel
-kernel/buildroot
 kernel/artifacts/
 !rootfs-overlay/
