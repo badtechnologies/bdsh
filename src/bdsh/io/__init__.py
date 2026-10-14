@@ -1,9 +1,15 @@
 from abc import ABC, abstractmethod
+from contextlib import contextmanager
+from collections.abc import Iterator
 
 from bdsh import NL
 
 
 class TerminalIO(ABC):
+    @contextmanager
+    def interactive_mode(self) -> Iterator[None]:
+        yield
+
     @abstractmethod
     def read(self, size: int = -1) -> str:
         ...

@@ -4,6 +4,9 @@ Unit tests for terminal abstractions and console forwarding.
 Author: Logan Dhillon <dev@logandhillon.com>
 """
 
+import os
+import pty
+import termios
 from unittest.mock import Mock, call
 
 import bdsh
@@ -124,3 +127,29 @@ def test_console_terminal_readline_uses_builtin_input(monkeypatch):
 
     assert ConsoleTerminal().readline() == "typed"
     assert input_fn.call_args_list == [call()]
+
+
+def test_console_terminal_interactive_mode_enables_character_input(monkeypatch):
+    """Disable canonical input and echo for the shell, then restore terminal settings."""
+    master, slave = pty.openpty()
+    stdin = os.fdopen(os.dup(slave), "r")
+    stdout = os.fdopen(os.dup(slave), "w")
+    monkeypatch.setattr(console_module.sys, "stdin", stdin)
+    monkeypatch.setattr(console_module.sys, "stdout", stdout)
+    terminal = ConsoleTerminal()
+    original = termios.tcgetattr(stdin.fileno())
+
+    try:
+        with terminal.interactive_mode():
+            interactive = termios.tcgetattr(stdin.fileno())
+            assert interactive[3] & termios.ICANON == 0
+            assert interactive[3] & termios.ECHO == 0
+
+        restored = termios.tcgetattr(stdin.fileno())
+        assert restored[3] & termios.ICANON == original[3] & termios.ICANON
+        assert restored[3] & termios.ECHO == original[3] & termios.ECHO
+    finally:
+        stdin.close()
+        stdout.close()
+        os.close(master)
+        os.close(slave)

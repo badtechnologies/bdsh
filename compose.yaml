@@ -20,6 +20,15 @@ services:
       - buildroot-downloads:/downloads
     entrypoint: ["/usr/local/bin/bados-buildroot"]
     command: ["help"]
+  iso-builder:
+    platform: linux/amd64
+    build:
+      context: ./kernel/docker
+      dockerfile: Dockerfile.iso
+    volumes:
+      - ./:/workspace/bdsh:ro
+      - ./kernel/artifacts:/workspace/kernel/artifacts
+    entrypoint: ["/bin/sh", "/workspace/bdsh/kernel/docker/build-iso.sh"]
 
 volumes:
   bados-build:

@@ -9,8 +9,8 @@ ARTIFACTS := $(ROOT_DIR)/kernel/artifacts
 BDSH_SRC := $(ROOT_DIR)/src/bdsh
 
 .PHONY: help os-config os-update-config os-menuconfig os-linux-menuconfig \
-	os-save-config os-build os-linux-reconfigure os-check os-export os-qemu \
-	os-clean os-package release
+	os-save-config os-build os-linux-reconfigure os-check os-export os-package \
+	os-iso os-qemu os-qemu-iso os-clean release
 
 help:
 	@printf '%s\n' \
@@ -23,7 +23,9 @@ help:
 		'  make os-build           Build the kernel and root filesystem' \
 		'  make os-check           Check required kernel options and image contents' \
 		'  make os-export          Copy bzImage and rootfs.cpio.gz into kernel/artifacts/' \
+		'  make os-iso             Build a bootable BIOS/UEFI ISO in kernel/artifacts/' \
 		'  make os-qemu            Build, export, and boot the image with macOS QEMU' \
+		'  make os-qemu-iso        Boot ISO with graphics and serial attached to this terminal' \
 		'' \
 		'Override QEMU, JOBS, or MEMORY on the make command line as needed.'
 
@@ -60,6 +62,10 @@ os-package:
 	$(MAKE) os-check
 	$(MAKE) os-export
 
+os-iso:
+	$(MAKE) os-package
+	$(COMPOSE) run --rm --build iso-builder
+
 os-qemu: 
 ifeq ($(NO_BUILD),1)
 	@echo "Skipping build, check, and export."
@@ -80,6 +86,28 @@ endif
 		-append "console=ttyS0,115200 rdinit=/usr/bin/bdsh-init" \
 		-nographic
 
+os-qemu-iso:
+ifeq ($(NO_BUILD),1)
+	@echo "Skipping build, check, and ISO creation."
+else
+	$(MAKE) os-iso
+endif
+
+	@command -v "$(QEMU)" >/dev/null 2>&1 || { \
+		echo "QEMU not found: install it on macOS (for example: brew install qemu)" >&2; \
+		exit 1; \
+	}
+	version=$$(sed -n 's/^__version__[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$(BDSH_SRC)/__version__.py"); \
+	test -n "$$version" || { echo "Could not read version" >&2; exit 1; }; \
+	$(QEMU) \
+		-m "$(MEMORY)" \
+		-object rng-random,filename=/dev/urandom,id=rng0 \
+		-device virtio-rng-pci,rng=rng0 \
+		-serial stdio \
+		-monitor none \
+		-cdrom "$(ARTIFACTS)/BadOS-$$version-x86_64.iso" \
+		-boot order=d
+
 os-clean:
 	$(COMPOSE) run --rm --build buildroot clean
 
@@ -95,7 +123,7 @@ else
 	esac
 	@set -eu; \
 	rm -f "$(ARTIFACTS)"/*; \
-	$(MAKE) os-package; 
+	$(MAKE) os-iso;
 endif
 
 	version=$$(sed -n 's/^__version__[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$(BDSH_SRC)/__version__.py"); \

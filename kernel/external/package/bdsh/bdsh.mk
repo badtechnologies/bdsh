@@ -12,6 +12,15 @@ BDSH_LICENSE = LicenseRef-Proprietary
 BDSH_LICENSE_FILES = LICENSE
 BDSH_DEPENDENCIES = host-python-setuptools python-argon2-cffi python-icmplib python-psutil python-requests
 
+define BDSH_CLEAN_STALE_TARGET_PACKAGE
+	rm -rf $(TARGET_DIR)/usr/lib/python$(PYTHON3_VERSION_MAJOR)/site-packages/bdsh \
+		$(TARGET_DIR)/usr/lib/python$(PYTHON3_VERSION_MAJOR)/site-packages/bdsh-*.dist-info \
+		$(TARGET_DIR)/usr/bin/bdsh \
+		$(TARGET_DIR)/usr/bin/bdsh-init \
+		$(TARGET_DIR)/usr/bin/badproc
+endef
+BDSH_PRE_INSTALL_TARGET_HOOKS += BDSH_CLEAN_STALE_TARGET_PACKAGE
+
 define BDSH_CLEAN_STALE_BUILD_OUTPUT
 	rm -rf $(@D)/build $(@D)/dist
 endef
