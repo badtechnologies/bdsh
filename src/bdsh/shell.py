@@ -47,36 +47,37 @@ class Shell:
         return f"{NL}{self.session.get_user().username}:{"~" if self.session.cwd == self.session.userhome else self.session.cwd}$ "
 
     def start(self):
-        # ensure session is valid
-        self.session.chdir(self.session.cwd)  # resolve cwd
-        self.execute("ver")
-        self.session.is_running = True
+        with self.session.io.interactive_mode():
+            # ensure session is valid
+            self.session.chdir(self.session.cwd)  # resolve cwd
+            self.execute("ver")
+            self.session.is_running = True
 
-        if not self.session.cwd.is_dir():
-            self.fatal("bdsh: current directory does not exist or is not a folder", 130)
+            if not self.session.cwd.is_dir():
+                self.fatal("bdsh: current directory does not exist or is not a folder", 130)
 
-        # handle authentication
-        if not self.session.is_logged_in():
-            self.fatal("bdsh: attempted to instantiate shell without logging in", 131)
+            # handle authentication
+            if not self.session.is_logged_in():
+                self.fatal("bdsh: attempted to instantiate shell without logging in", 131)
 
-        self.session.io.println(f"Welcome, {self.session.get_user().username}!")
-        self.session.chdir(self.session.userhome)
+            self.session.io.println(f"Welcome, {self.session.get_user().username}!")
+            self.session.chdir(self.session.userhome)
 
-        # start processing commands
-        buffer = []
+            # start processing commands
+            buffer = []
 
-        while self.session.is_running:
-            try:
-                self._process_input(buffer)
+            while self.session.is_running:
+                try:
+                    self._process_input(buffer)
 
-            except KeyboardInterrupt:
-                buffer.clear()
-                continue
+                except KeyboardInterrupt:
+                    buffer.clear()
+                    continue
 
-            except Exception as e:
-                buffer.clear()
-                self.session.io.print(f"bdsh: unhandled exception: {e}{NL}{self.get_prompt()}")
-                continue
+                except Exception as e:
+                    buffer.clear()
+                    self.session.io.print(f"bdsh: unhandled exception: {e}{NL}{self.get_prompt()}")
+                    continue
 
     def _process_input(self, buffer: list[str]):
         if not buffer:
@@ -85,8 +86,7 @@ class Shell:
         char = self.session.io.read(1)
 
         if char in {'\n', '\r'}:
-            if char == '\r':
-                self.session.io.print('\n')
+            self.session.io.print(NL)
             self.execute(''.join(buffer))
             buffer.clear()
         elif char == '\x03':  # ^C
@@ -97,4 +97,5 @@ class Shell:
             self.session.io.print('\x08 \x08')
             buffer.pop()
         else:
+            self.session.io.print(char)
             buffer.append(char)

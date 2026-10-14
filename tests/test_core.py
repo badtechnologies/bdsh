@@ -142,7 +142,20 @@ def test_shell_process_input_executes_line_and_clears_buffer():
 
     assert shell.execute.call_args_list == [call("echo hi")]
     assert buffer == []
-    assert io.print.call_args_list == [call("\n")]
+    assert io.print.call_args_list == [call(bdsh.NL)]
+
+
+def test_shell_process_input_echoes_characters():
+    """Echo typed characters while the terminal is in character-at-a-time mode."""
+    io = Mock()
+    io.read.return_value = "x"
+    shell = Shell(SimpleNamespace(io=io))
+    buffer = ["a"]
+
+    shell._process_input(buffer)
+
+    assert buffer == ["a", "x"]
+    assert io.print.call_args_list == [call("x")]
 
 
 def test_shell_process_input_backspace_removes_last_character():
