@@ -1,12 +1,20 @@
+"""
+BadLogon is the service responsible for user logon and security.
+
+Author: Logan Dhillon <dev@logandhillon.com>
+"""
+
+
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Never, Protocol, TypedDict
+from typing import Never, TypedDict
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 from bdsh import OSPaths
-from bdsh.service.rpc import RPCSocketService, servicemethod
+from bdsh.service.rpc import RPCSocketClient, RPCSocketService, servicemethod
 
 hasher = PasswordHasher()
 
@@ -18,10 +26,19 @@ class SerializedUser(TypedDict):
 
 @dataclass
 class User:
+    """A dataclass for user credentials, storing the username and password hash"""
     username: str
     password_hash: str
 
     def try_login(self, password: str) -> bool:
+        """Tries to verify a given password against this user's stored hash
+
+        Args:
+            password (str): password to attempt logon with
+
+        Returns:
+            bool: if the logon was successful/password matched\
+        """
         try:
             hasher.verify(self.password_hash, password)
             return True
@@ -29,19 +46,53 @@ class User:
             return False
 
 
-class BadLogonAPI(Protocol):
+class BadLogonAPI(ABC):
+    """The API which this service's accessors (e.g. clients and servers) must implement."""
+    @abstractmethod
     def save(self) -> None: ...
 
+    @abstractmethod
     def load(self) -> list[SerializedUser]: ...
 
-    def add(self, *, username: str, password: str) -> None: ...
+    @abstractmethod
+    def add(self, username: str, password: str) -> None: ...
 
-    def get_user_by_credentials(self, *, username: str, password: str) -> SerializedUser | None: ...
+    @abstractmethod
+    def get_user_by_credentials(
+        self, username: str, password: str) -> SerializedUser | None: ...
 
-    def validate_username(self, *, username: str) -> bool: ...
+    @abstractmethod
+    def validate_username(self, username: str) -> bool: ...
+
+
+class BadLogonClient(RPCSocketClient, BadLogonAPI):
+    """BadLogon is the service responsible for user logon and security.
+
+    This class allows usage of/communication with the service.
+    """
+
+    def __init__(self):
+        super().__init__("badlogon.sys")
+
+    def save(self) -> None:
+        return self.request("save", None)
+
+    def load(self) -> list[SerializedUser]:
+        return self.request("load", None)
+
+    def add(self, username: str, password: str) -> None:
+        return self.request("add", {username: username, password: password})
+
+    def get_user_by_credentials(self, username: str, password: str) -> SerializedUser | None:
+        return self.request("get_user_by_credentials", {username: username, password: password})
+
+    def validate_username(self, username: str) -> bool:
+        return self.request("validate_username", {username: username})
 
 
 class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.sys"):
+    """BadLogon is the service responsible for user logon and security."""
+
     def __init__(self, userman_path: Path = OSPaths.CONFIGS.joinpath("userman")):
         super().__init__()
         self.path = userman_path
@@ -77,11 +128,11 @@ class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.sys"):
         return users
 
     @servicemethod
-    def validate_username(self, *, username: str) -> bool:
+    def validate_username(self, username: str) -> bool:
         return not (':' in username)
 
     @servicemethod
-    def add(self, *, username: str, password: str) -> None:
+    def add(self, username: str, password: str) -> None:
         if not self.validate_username(username=username):
             raise ValueError("username contains illegal characters")
 
@@ -95,12 +146,14 @@ class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.sys"):
         self.users.append(User(username, hasher.hash(password)))
 
     @servicemethod
-    def get_user_by_credentials(self, *, username: str, password: str) -> SerializedUser | None:
+    def get_user_by_credentials(self, username: str, password: str) -> SerializedUser | None:
         for user in self.users:
-            if user.username != username: continue
+            if user.username != username:
+                continue
 
             result = user.try_login(password)
-            if not result: continue
+            if not result:
+                continue
 
             return SerializedUser(username=user.username, password_hash=user.password_hash)
 

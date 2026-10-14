@@ -1,14 +1,36 @@
+"""
+An RPC service is a type of BadOS service that communicates over RPC using
+internal UNIX sockets. 
+
+These should be used for any service that requires any type of communication
+(e.g. anything that's more than a background process.)
+
+Author: Logan Dhillon <dev@logandhillon.com>
+"""
+
+
 import json
 import socket
 from pathlib import Path
 
 from bdsh.service import BadOSService, ServiceUnavailableError
+from bdsh.types import SerializableDict
 from bdsh.util.serializing import validate_json_value
 
-_socket_path = lambda proc: f"/tmp/{proc}.sock"
+
+def _socket_path(proc):
+    """Defines the UNIX socket path for a given process."""
+    # TODO: this is like this so i can run it on my dev machine, change it for real OS
+    return f"/tmp/{proc}.sock"
 
 
 class RPCSocketService(BadOSService, name=None):
+    """An RPC service is a type of BadOS service that communicates over RPC using
+    internal UNIX sockets.
+
+    The service is the "server" that responds to RPC requests.
+    """
+
     def __init__(self):
         super().__init__()
         self.socket_path = Path(_socket_path(self.name)).resolve()
@@ -23,6 +45,9 @@ class RPCSocketService(BadOSService, name=None):
             self.server = None
 
     def start(self):
+        """Starts running this socket, listening for incoming client connections and
+        handling them via _handle_client.
+        """
         self.socket_path.unlink(missing_ok=True)
 
         self.server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -55,7 +80,13 @@ class RPCSocketService(BadOSService, name=None):
 
         self.socket_path.unlink(missing_ok=True)
 
-    def _handle_client(self, client):
+    def _handle_client(self, client: socket.socket):
+        """Handles an incoming client connection, sending the data it receives on the
+        connection to _handle_request
+
+        Args:
+            client (socket): the socket of the client connection
+        """
         req = json.loads(client.recv(65536).decode("utf-8"))
         validate_json_value(req, "request")
         res = self._handle_request(req)
@@ -64,6 +95,14 @@ class RPCSocketService(BadOSService, name=None):
         client.sendall(json.dumps(res).encode("utf-8"))
 
     def _handle_request(self, request):
+        """Handles an incomming request from an RPC client
+
+        Args:
+            request (any): JSON-formatted request data from client
+
+        Returns:
+            SerializableDict: id and message (or error) from usptream dispatched method
+        """
         request_id = request.get("id")
         method = request.get("method")
         params = request.get("params", {})
@@ -87,7 +126,21 @@ class RPCSocketService(BadOSService, name=None):
                 }
             }
 
-    def dispatch(self, method, params):
+    def dispatch(self, method: str, params: SerializableDict):
+        """Given the provided method name, this finds the corresponding method, dispatches
+        it, and returns the value of the given method. This will only run methods marked
+        with @servicemethod.
+
+        Args:
+            method (str): name of method to dispatch
+            params (SerializableDict): parameters to pass to dispatched method
+
+        Raises:
+            ValueError: if the service method does not exist (or isn't marked with @servicemethod)
+
+        Returns:
+            unknown: return value of dispatched method
+        """
         handler = getattr(self, method, None)
 
         if handler is None or not getattr(handler, "_is_service_method", False):
@@ -97,21 +150,44 @@ class RPCSocketService(BadOSService, name=None):
 
 
 def servicemethod(func):
-    func._is_service_method = True
+    """Marks a method as a "service method," meaning it will be available for request via RPC."""
+    func._is_service_method = True  # pylint: disable=protected-access
     return func
 
 
 class RPCError(Exception):
+    """Generic error used for upstream errors on an RPC service"""
+
     def __init__(self, msg: str, *, err_type: str | None = None):
         super().__init__(f"{err_type or "generic error"}: {msg}")
 
 
 class RPCSocketClient:
+    """An RPC service is a type of BadOS service that communicates over RPC using
+    internal UNIX sockets.
+
+    The client requests operations from the service it is created for.
+    """
+
     def __init__(self, proc_name: str):
         self.socket_path = _socket_path(proc_name)
         self._request_id = 0
 
-    def request(self, method, params=None):
+    def request(self, method: str, params: SerializableDict | None = None):
+        """Requests an operation from the service this client was created for.
+
+        Args:
+            method (str): the name of the method to request
+            params (SerializableDict, optional): named dictionary of the parameters to include in the request
+
+        Raises:
+            ServiceUnavailableError: if the requested service is unavailable or does not exist
+            RPCError: if an error happened upstream and was communicated back
+            OSError: other I/O error that occured during socket communication
+
+        Returns:
+            any, optional: the response from the service operation
+        """
         validate_json_value(params, "request.params")
         if params is None:
             params = {}
@@ -127,9 +203,9 @@ class RPCSocketClient:
             data = sock.recv(65536)
         except OSError as e:
             if e.errno == 2:
-                raise ServiceUnavailableError(self.socket_path)
-            else:
-                raise e
+                raise ServiceUnavailableError(self.socket_path) from e
+
+            raise e
         finally:
             sock.close()
 
@@ -137,12 +213,7 @@ class RPCSocketClient:
         validate_json_value(response, "response")
 
         if "error" in response:
-            raise RPCError(response["error"]["message"], err_type=response["error"]["type"])
+            raise RPCError(response["error"]["message"],
+                           err_type=response["error"]["type"])
 
         return response["msg"]
-
-    def __getattr__(self, method):
-        def call(**params):
-            return self.request(method, params)
-
-        return call

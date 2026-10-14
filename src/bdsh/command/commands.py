@@ -20,13 +20,15 @@ class HelpCommand(Command):
                 msg = subcommand.help()
 
                 if not msg:
-                    self.session.io.println(f"help: {args[1]} does not have a manual or help message")
+                    self.session.io.println(
+                        f"help: {args[1]} does not have a manual or help message")
                 else:
                     self.session.io.println(f"help: {args[1]}: {msg}")
             else:
                 raise TypeError(f"{args[1]} is not a valid command")
         else:
-            self.session.io.println(f"bdsh commands:{NL}" + '\t'.join(self.session.commands.keys()))
+            self.session.io.println(
+                f"bdsh commands:{NL}" + '\t'.join(self.session.commands.keys()))
 
     def help(self) -> str:
         return "lists all commands, or displays the help message for individual commands"
@@ -35,10 +37,12 @@ class HelpCommand(Command):
 class ListDirectoryCommand(Command):
     def execute(self, args: List[str]):
         try:
-            path = self.session.cwd.joinpath(args[1]).resolve() if len(args) > 1 else self.session.cwd
+            path = self.session.cwd.joinpath(args[1]).resolve() if len(
+                args) > 1 else self.session.cwd
 
             self.session.io.println('\t'.join([
-                str(item.name) + '/' if path.joinpath(item).is_dir() else str(item.name)
+                str(item.name) +
+                '/' if path.joinpath(item).is_dir() else str(item.name)
                 for item in path.iterdir()
             ]))
         except FileNotFoundError:
@@ -75,8 +79,10 @@ class ThrowCommand(Command):
 
 class GoCommand(Command):
     def execute(self, args: List[str]):
-        path = self.session.userhome if args[1] == "~" else self.session.cwd.joinpath(args[1])
-        if path.is_dir():
+        path = self.session.userhome if args[1] == "~" else self.session.cwd.joinpath(
+            args[1])
+
+        if path is not None and path.is_dir():
             self.session.chdir(path)
         else:
             raise FileNotFoundError(f"{args[1]}: no such folder")
@@ -107,7 +113,7 @@ def register_commands(session: Session) -> Dict[str, Command]:
         "ver": AnonymousCommand(session, lambda _: session.io.println(SHELL_COPYRIGHT), "displays shell version"),
         "def": DefineCommand(session),
         "throw": ThrowCommand(session),
-        "cwd": AnonymousCommand(session, lambda _: session.io.println(session.cwd), "displays current directory"),
+        "cwd": AnonymousCommand(session, lambda _: session.io.println(str(session.cwd)), "displays current directory"),
         "go": GoCommand(session),
         "peek": PeekCommand(session),
         "bpm": BadOSPackageManagerCommand(session),
