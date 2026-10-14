@@ -8,7 +8,8 @@ ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 ARTIFACTS := $(ROOT_DIR)/kernel/artifacts
 
 .PHONY: help os-config os-update-config os-menuconfig os-linux-menuconfig \
-	os-save-config os-build os-linux-reconfigure os-check os-export os-qemu os-clean
+	os-save-config os-build os-linux-reconfigure os-check os-export os-qemu \
+	os-clean os-package release
 
 help:
 	@printf '%s\n' \
@@ -53,13 +54,16 @@ os-export:
 	mkdir -p "$(ARTIFACTS)"
 	$(COMPOSE) run --rm --build buildroot export
 
+os-package:
+	$(MAKE) os-build
+	$(MAKE) os-check
+	$(MAKE) os-export
+
 os-qemu: 
 ifeq ($(NO_BUILD),1)
 	@echo "Skipping build, check, and export."
 else
-	$(MAKE) os-build
-	$(MAKE) os-check
-	$(MAKE) os-export
+	$(MAKE) os-package
 endif
 
 	@command -v "$(QEMU)" >/dev/null 2>&1 || { \
@@ -77,3 +81,17 @@ endif
 
 os-clean:
 	$(COMPOSE) run --rm --build buildroot clean
+
+release:
+	@printf 'This will delete all files in $(ARTIFACTS) and create a GitHub release. Continue? [y/N] '; \
+	read answer; \
+	case "$$answer" in \
+		[yY]|[yY][eE][sS]) ;; \
+		*) echo "Release cancelled."; exit 1 ;; \
+	esac
+	@set -eu; \
+	rm -f "$(ARTIFACTS)"/*; \
+	$(MAKE) os-package; \
+	version=$$(sed -n 's/^__version__[[:space:]]*=[[:space:]]*["'\'']\{0,1\}v\{0,1\}\([0-9][^"'\'']*\)["'\'']\{0,1\}[[:space:]]*$$/\1/p' __version__); \
+	test -n "$$version" || { echo "Could not read version from __version__" >&2; exit 1; }; \
+	gh release create "v$$version" "$(ARTIFACTS)"/* --generate-notes
