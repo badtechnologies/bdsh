@@ -4,8 +4,14 @@ from dataclasses import dataclass
 
 @dataclass
 class VersionSelector:
+    """Parses and stores a semver-style version selector
+
+    Raises:
+        ValueError: If the parsed selector is invalid
+    """
+
     operator: str
-    version: tuple[int, int, int]
+    version: tuple[int, int, int] | None
 
     def __init__(self, selector: str):
         self.original = selector.strip()
@@ -25,10 +31,18 @@ class VersionSelector:
 
     @staticmethod
     def parse_version(version: str) -> tuple[int, int, int]:
-        parts = version.split(".", 2)
-        return tuple(map(int, parts))
+        x, y, z = map(int, version.split(".", 2))
+        return (x, y, z)
 
     def to_pip(self) -> str:
+        """Formats this version selector as a PIP-compliant version selector (e.g. ~=1.2.3)
+
+        Raises:
+            ValueError: If the version selection operator is invalid
+
+        Returns:
+            str: PIP-style version
+        """
         if self.version is None:
             return ""
 
@@ -104,6 +118,6 @@ class VersionSelector:
             else:
                 upper = (0, 0, patch + 1)
 
-            return target >= self.version and target < upper
+            return upper > target >= self.version
 
         raise ValueError(f"Unsupported operator: {self.operator}")

@@ -4,9 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bdsh"
-authors = [
-    { name = "Logan Dhillon", email = "dev@logandhillon.com" }
-]
+authors = [{ name = "Logan Dhillon", email = "dev@logandhillon.com" }]
 dynamic = ["version"]
 description = "BadOS Dynamic Shell"
 requires-python = ">=3.10"
@@ -17,7 +15,14 @@ dependencies = [
     "requests>=2.31.0",
 ]
 readme = "README.md"
-keywords = ["shell", "terminal", "cli", "command-line", "BadOS", "operating-system"]
+keywords = [
+    "shell",
+    "terminal",
+    "cli",
+    "command-line",
+    "BadOS",
+    "operating-system",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -29,7 +34,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: System :: Shells",
-    "Topic :: Terminals"
+    "Topic :: Terminals",
 ]
 license = { file = "LICENSE" }
 
@@ -49,3 +54,7 @@ where = ["src"]
 
 [tool.setuptools.dynamic]
 version = { attr = "bdsh.__version__.__version__" }
+
+[tool.pylint.format]
+max-line-length = 120
+docstring-min-length = 5

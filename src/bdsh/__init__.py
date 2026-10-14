@@ -1,3 +1,13 @@
+"""
+BadOS Dynamic Shell (bdsh) is a dynamic Python-based shell designed for BadOS.
+It is designed around modularity and compatibility with third-party libraries.
+
+This is the root of the bdsh package, and provides basic constants that may be
+used around the codebase.
+
+Author: Logan Dhillon <dev@logandhillon.com>
+"""
+
 from pathlib import Path
 from typing import Final
 
@@ -13,6 +23,8 @@ def get_shell_path(*paths: str):
 
 
 class OSPaths:
+    """Provides a namespace to access OS paths (e.g. /app, /cfg)"""
+
     ROOT: Final[Path] = _ROOT_DIR
 
     APPLICATIONS: Final[Path] = get_shell_path("app")
