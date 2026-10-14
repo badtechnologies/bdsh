@@ -5,7 +5,9 @@ from pathlib import Path
 from bdsh.service import BadOSService, ServiceUnavailableError
 from bdsh.util.serializing import validate_json_value
 
-_socket_path = lambda proc: f"/tmp/{proc}.sock"
+
+def _socket_path(proc):
+    return f"/tmp/{proc}.sock"
 
 
 class RPCSocketService(BadOSService, name=None):
@@ -111,7 +113,7 @@ class RPCSocketClient:
         self.socket_path = _socket_path(proc_name)
         self._request_id = 0
 
-    def request(self, method, params=None):
+    def request(self, method, params: dict[str, object] | None = None):
         validate_json_value(params, "request.params")
         if params is None:
             params = {}
@@ -137,12 +139,7 @@ class RPCSocketClient:
         validate_json_value(response, "response")
 
         if "error" in response:
-            raise RPCError(response["error"]["message"], err_type=response["error"]["type"])
+            raise RPCError(response["error"]["message"],
+                           err_type=response["error"]["type"])
 
         return response["msg"]
-
-    def __getattr__(self, method):
-        def call(**params):
-            return self.request(method, params)
-
-        return call

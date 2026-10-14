@@ -7,7 +7,7 @@ from bdsh import SHELL_COPYRIGHT
 from bdsh.io.console import ConsoleTerminal
 from bdsh.service import ServiceUnavailableError
 from bdsh.service.badlogon import User
-from bdsh.service.badlogon.client import BadLogonClient
+from bdsh.service.badlogon import BadLogonClient
 from bdsh.service.dispatch import dispatch_system_services
 from bdsh.session import Session
 from bdsh.shell import Shell

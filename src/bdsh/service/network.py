@@ -1,19 +1,40 @@
 import socket
-from typing import Protocol
+from abc import ABC, abstractmethod
 
 import psutil
 
-from bdsh.service.rpc import RPCSocketService, servicemethod
+from bdsh.service.rpc import RPCSocketClient, RPCSocketService, servicemethod
 
 
-class NetworkAPI(Protocol):
+class NetworkAPI(ABC):
+    @abstractmethod
     def hostname(self) -> str: ...
 
+    @abstractmethod
     def interfaces(self) -> dict: ...
 
+    @abstractmethod
     def interface_addresses(self) -> dict: ...
 
-    def resolve(self, *, hostname: str) -> str: ...
+    @abstractmethod
+    def resolve(self, hostname: str) -> str: ...
+
+
+class NetworkClient(RPCSocketClient, NetworkAPI):
+    def __init__(self):
+        super().__init__("network.sys")
+
+    def hostname(self) -> str:
+        return self.request("hostname")
+
+    def interfaces(self) -> dict:
+        return self.request("interfaces")
+
+    def interface_addresses(self) -> dict:
+        return self.request("interface_addresses")
+
+    def resolve(self, hostname: str) -> str:
+        return self.request("resolve", {hostname: hostname})
 
 
 class NetworkService(RPCSocketService, NetworkAPI, name="network.sys"):
@@ -21,9 +42,8 @@ class NetworkService(RPCSocketService, NetworkAPI, name="network.sys"):
     def hostname(self):
         return socket.gethostname()
 
-    # noinspection PyProtocol
     @servicemethod
-    def resolve(self, *, hostname: str) -> str:
+    def resolve(self, hostname: str) -> str:
         return socket.gethostbyname(hostname)
 
     @servicemethod
