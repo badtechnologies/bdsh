@@ -1,3 +1,11 @@
+"""
+Simple module for storing a list of all system services, and
+providing a method to start them all.
+
+Author: Logan Dhillon <dev@logandhillon.com>
+"""
+
+
 from threading import Thread
 
 from bdsh.service.badlogon import BadLogonService

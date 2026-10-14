@@ -1,3 +1,11 @@
+"""
+The network service controls on-device network drivers, provides information
+about device interfaces, and allows mangement of said interfaces.
+
+Author: Logan Dhillon <dev@logandhillon.com>
+"""
+
+
 import socket
 from abc import ABC, abstractmethod
 
@@ -7,6 +15,7 @@ from bdsh.service.rpc import RPCSocketClient, RPCSocketService, servicemethod
 
 
 class NetworkAPI(ABC):
+    """The API which this service's accessors (e.g. clients and servers) must implement."""
     @abstractmethod
     def hostname(self) -> str: ...
 
@@ -21,6 +30,11 @@ class NetworkAPI(ABC):
 
 
 class NetworkClient(RPCSocketClient, NetworkAPI):
+    """The network service controls on-device network drivers.
+
+    This class allows usage of/communication with the service.
+    """
+
     def __init__(self):
         super().__init__("network.sys")
 
@@ -38,6 +52,7 @@ class NetworkClient(RPCSocketClient, NetworkAPI):
 
 
 class NetworkService(RPCSocketService, NetworkAPI, name="network.sys"):
+    """The network service controls on-device network drivers."""
     @servicemethod
     def hostname(self):
         return socket.gethostname()

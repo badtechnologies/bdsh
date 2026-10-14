@@ -1,3 +1,11 @@
+"""
+A service is a type of process that does not need user interaction or
+management, running in the background. Services are managed by BOSS.
+
+Author: Logan Dhillon <dev@logandhillon.com>
+"""
+
+
 import signal
 from abc import ABC, abstractmethod
 from types import FrameType
@@ -7,6 +15,7 @@ SERVICES: dict[str, Type["BadOSService"]] = {}
 
 
 class BadOSService(ABC):
+    """The base class for any service that can be ran or managed by BadOS."""
     name: str
 
     def __init__(self):

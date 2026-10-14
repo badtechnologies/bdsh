@@ -1,3 +1,10 @@
+"""
+BadLogon is the service responsible for user logon and security.
+
+Author: Logan Dhillon <dev@logandhillon.com>
+"""
+
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,10 +26,19 @@ class SerializedUser(TypedDict):
 
 @dataclass
 class User:
+    """A dataclass for user credentials, storing the username and password hash"""
     username: str
     password_hash: str
 
     def try_login(self, password: str) -> bool:
+        """Tries to verify a given password against this user's stored hash
+
+        Args:
+            password (str): password to attempt logon with
+
+        Returns:
+            bool: if the logon was successful/password matched\
+        """
         try:
             hasher.verify(self.password_hash, password)
             return True
@@ -31,6 +47,7 @@ class User:
 
 
 class BadLogonAPI(ABC):
+    """The API which this service's accessors (e.g. clients and servers) must implement."""
     @abstractmethod
     def save(self) -> None: ...
 
@@ -49,6 +66,11 @@ class BadLogonAPI(ABC):
 
 
 class BadLogonClient(RPCSocketClient, BadLogonAPI):
+    """BadLogon is the service responsible for user logon and security.
+
+    This class allows usage of/communication with the service.
+    """
+
     def __init__(self):
         super().__init__("badlogon.sys")
 
@@ -69,6 +91,8 @@ class BadLogonClient(RPCSocketClient, BadLogonAPI):
 
 
 class BadLogonService(RPCSocketService, BadLogonAPI, name="badlogon.sys"):
+    """BadLogon is the service responsible for user logon and security."""
+
     def __init__(self, userman_path: Path = OSPaths.CONFIGS.joinpath("userman")):
         super().__init__()
         self.path = userman_path
