@@ -5,37 +5,18 @@ nav_order: 1
 
 # BadOS Dynamic Shell (bdsh)
 
-bdsh is a small command shell for BadOS. It handles login, local command definitions, basic system commands, and package installs.
+bdsh is a Python shell for BadOS. It provides built-in commands, user profiles, package installs, and small system services.
 
-## Quick Install
+## Get started
 
-Run the following command:
+Install bdsh and create its working directory and user database with the [installation guide](installation.md). Then start the shell with:
 
 ```sh
-python3 -m pip install bdsh
-python3 -m bdsh.install
+bdsh
 ```
 
-The installer creates the shell root, config directory, and first user.
+The interactive shell needs the BadLogon service running. See [Services](boss/services.md) for how to start it.
 
-## Installation (Manual)
+## BadOS kernel image
 
-1. Download the latest release.
-
-   Or, install the package from PyPI.
-
-2. Set up bdsh:
-
-   ```sh
-   python3 -m bdsh.install
-   ```
-
-   Follow the prompts. The setup script creates the `bdsh/` directory tree and config files.
-
-3. Start bdsh:
-
-   ```sh
-   bdsh
-   ```
-
-The shell prompts for a username and password, then starts an interactive session.
+This repository also builds a live x86_64 BadOS image using Buildroot and Linux. The [kernel guide](kernel/index.md) explains how to build, configure, and boot it.

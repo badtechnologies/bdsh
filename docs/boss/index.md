@@ -5,23 +5,22 @@ nav_order: 6
 
 # BOSS (BadOS Service Supervisor)
 
-bdsh uses lightweight domain socket services for login and networking.
+bdsh uses local services for login and networking. The built-in clients communicate with them over Unix-domain sockets.
 
 ## Service Management
 
-The built in `boss` command starts a service by name.
+The built-in `boss` command starts a registered service by name:
 
 ```sh
 boss myservice.sys
 ```
 
-BOSS discovers service classes at runtime and calls their `start()` method.
+The service runs in the foreground until interrupted. BOSS discovers the service classes shipped with bdsh and calls the selected service's `start()` method.
 
-Services are conventionally stored as `.sys` files.
+The `.sys` names are service identifiers, not files to execute. For the `badproc` entry point and service lifecycle, see [Services](services.md).
 
 ## Installing Services
 
-BadOS ships with some services out-of-the-box (see [here](builtins.md)).
+bdsh ships with the services listed in [Built-Ins](builtins.md).
 
-You can find and install more services using [bpm](../packages/index.md). Services can be published on
-the [BDSH Package Library](../packages/bpl.md) just like other packages.
+Additional service packages can be installed with [bpm](../packages/index.md) and published through the [BPL](../packages/bpl.md).

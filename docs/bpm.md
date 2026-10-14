@@ -5,40 +5,35 @@ nav_order: 5
 
 # BadOS Package Manager (bpm)
 
-Use `bpm` to install, remove, and upgrade packages.
+`bpm` installs, removes, and upgrades packages from a GitHub-hosted BPL repository. The default repository is `badtechnologies/bpl/main`.
 
-The package manager is included in the shell. It resolves package metadata from the configured package repo and installs binaries and Python dependencies.
-
-## Install a package
+## Commands
 
 ```sh
-bpm install <package>
+bpm install <package> [package ...]
+bpm remove <package> [package ...]
+bpm upgrade <package> [package ...]
 ```
 
-## Remove a package
+Add `-y` or `--yes` to skip confirmation prompts. To use a different repository, pass `-r owner/repository/branch`:
 
 ```sh
-bpm remove <package>
+bpm install -y -r owner/repository/branch example
 ```
 
-## Upgrade a package
+## Package layout
 
-```sh
-bpm upgrade <package>
-```
+For package `example`, bpm fetches metadata from `lib/example/bpl.json`. The metadata's `id` is used for installed paths and must be a lowercase ID made of letters, digits, and hyphens.
 
-## Options
+- Binaries are downloaded from `lib/<id>/<filename>` and exposed under `bdsh/exec`.
+- Package files are stored under `bdsh/app/<id>/<version>/`.
+- Install records are stored under `bdsh/cfg/bpm/<id>@<version>.bpmstore`.
+- `dependencies` names other packages to discover from the same repository.
+- `pythonDependencies` names Python packages to install with pip.
+- `setupScripts` names remote scripts that bpm executes during installation.
 
-```sh
-bpm install -y <package>
-bpm install -r owner/repo/branch <package>
-```
+Only install packages and setup scripts from sources you trust. Setup scripts run as Python code in the installing environment.
 
-- `-y` skips the confirmation prompt.
-- `-r` changes the package repo in the format `owner/repo/branch`.
+## Upgrade and removal
 
-## Package metadata
-
-The package manager reads `bpl.json` from the package repo and installs each binary into `bdsh/app/<id>/<version>/`.
-
-It also stores package metadata in `bdsh/cfg/bpm/*.bpmstore`.
+`upgrade` removes the selected installed package and installs it again from the selected repository. `remove` deletes files and executable links recorded in its package store. Python dependencies installed for a package are not removed automatically.

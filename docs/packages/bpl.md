@@ -6,16 +6,16 @@ nav_order: 1
 
 # BadOS Dynamic Shell Package Library (bpl)
 
-Contains all packages available to install for bdsh.
+The BadOS Package Library (BPL) is the default source of packages for bpm.
 
 ## Package URIs
 
 Packages are located at
 
 ```url
-https://raw.githubusercontent.com/badtechnologies/bpl/main/lib/<package name>
+https://raw.githubusercontent.com/badtechnologies/bpl/main/lib/<package-id>
 ```
 
 ## Working with Packages
 
-For documentation on creating and installing packages, see [Packages](index.md).
+Package metadata and package files live in `lib/<package-id>/`. See [Packages](index.md) for the metadata format and [Package Manager](../bpm.md) for installation.

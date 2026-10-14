@@ -3,37 +3,23 @@ title: File Structure
 nav_order: 4
 ---
 
-# System File Structure
+# Shell data files
 
-The installer creates the bdsh directory tree under the current working directory.
+bdsh stores its runtime data in a directory named `bdsh` under the process's current working directory. The path is chosen when Python imports bdsh; it is not a per-user home-directory setting.
 
-## Root Directory
+| Path | Purpose |
+| --- | --- |
+| `bdsh/app/` | Versioned package files downloaded by bpm. |
+| `bdsh/cfg/` | Configuration, the BadLogon user file, and bpm package records. |
+| `bdsh/exec/` | Executables made available by package installs. bdsh searches this tree recursively. |
+| `bdsh/prf/<username>/` | User profile directory; the normal shell starts the user here. |
 
-- **app/**: application installs managed by bpm
-- **cfg/**: configuration and package metadata
-- **exec/**: executable scripts and binaries for the shell
-- **prf/**: profile directories for each user
+The `OSPaths` class exposes these locations as `ROOT`, `APPLICATIONS`, `CONFIGS`, `EXECUTABLES`, and `PROFILES`.
 
-## Profile directories
+## Files created by the system
 
-Each user gets a folder under `bdsh/prf/<username>`. This is the directory the shell moves into after login.
+- `bdsh/cfg/userman` stores usernames and Argon2 password hashes, one per line.
+- `bdsh/cfg/bpm/*.bpmstore` records the package binaries and links used by bpm for removal.
+- `bdsh/app/<package-id>/<version>/` contains downloaded package binaries.
 
-## Runtime paths
-
-bdsh defines the following runtime paths in `bdsh.__init__`:
-
-- `OSPaths.ROOT`
-- `OSPaths.APPLICATIONS`
-- `OSPaths.CONFIGS`
-- `OSPaths.EXECUTABLES`
-- `OSPaths.PROFILES`
-
-## Command resolution
-
-bdsh resolves commands in this order:
-
-1. definitions from the current session
-2. built in commands
-3. executables in `bdsh/exec/`
-
-The shell does not currently search profile directories for executables during command resolution.
+On BadOS, the initramfs root filesystem is held in memory. Changes made to these paths during a live boot are lost when the system restarts.

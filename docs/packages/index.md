@@ -5,48 +5,43 @@ nav_order: 7
 
 # Packages
 
-This folder contains documentation for first- and third-party bdsh packages.
+This section documents the BPL package format and selected packages.
 
-## Creating a package
+## Package metadata
 
-Package repos are organized by package name.
-
-Inside the package root, create a `bpl.json` file like this:
+Each package lives under `lib/<package-name>/` in its GitHub repository and includes a `bpl.json` file. A minimal example is:
 
 ```json
 {
-  "name": "example bdsh package",
-  "id": "example-bdsh-package",
+  "name": "Example package",
+  "id": "example",
   "version": "1.0.0",
-  "author": "Me!",
+  "author": "Example author",
+  "shellVersion": ">=0.7.0",
   "binaries": {
     "example": "example.py"
   },
-  "setupScripts": ["setup.py"],
   "homepage": "https://example.com",
   "license": "MIT",
-  "shellVersion": "0.3.0",
+  "setupScripts": ["setup.py"],
   "dependencies": {
-    "packagename": "*",
-    "another-package": "^2.0.0"
+    "other-package": "*"
   },
   "pythonDependencies": {
-    "numpy": "*"
+    "some-library": ">=1.0.0"
   }
 }
 ```
 
-The `binaries` field points to the files to download. The `setupScripts` list runs after installation. `shellVersion` is checked against the current bdsh version before installation.
-
-Only `name`, `id`, `version`, `author`, and `shellVersion` are required to produce a valid package. The `id` should match the directory name in the package repo.
+The required fields are `name`, `id`, `version`, `author`, and `shellVersion`. Versions use three numeric components. The `id` is the installed package name and should match the package's directory name. `binaries` maps command names to files in the package directory; setup scripts and Python dependencies are optional.
 
 ## Installing packages
 
-Use the package manager to install or remove packages.
+Install a package with bpm:
 
 ```sh
 bpm install <package>
 bpm remove <package>
 ```
 
-For more information, see [Package Manager](../bpm.md).
+See [Package Manager](../bpm.md) for repository selection, install paths, and script behavior. Package-specific pages are notes about those packages, not a guarantee that the package is still published or current.
