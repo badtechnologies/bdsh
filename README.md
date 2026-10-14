@@ -33,7 +33,14 @@ The installer creates the shell root, config directory, and first user.
    bdsh
    ```
 
-The shell prompts for a username and password, then starts an interactive session.
+Before logging in, start the BadLogon service in one terminal:
+
+```sh
+badproc badlogon.sys
+```
+
+Then run `bdsh` in another terminal. The shell prompts for a username and
+password, then starts an interactive session.
 
 ## Minimal boot profile
 
@@ -44,6 +51,6 @@ login, run:
 bdsh-init
 ```
 
-The same entry point is available as `python3 -m bdsh.init`. It uses a fixed
-`/` starting directory and only standard-library shell commands. The `exit`
-and `quit` commands are disabled so the init process remains alive.
+The same entry point is available as `python3 -m bdsh.init`. It starts a
+minimal session as the `default` user in `bdsh/prf/default`, relative to the
+process's working directory. It does not start services or prompt for login.

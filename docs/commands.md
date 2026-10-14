@@ -3,75 +3,31 @@ title: Commands
 nav_order: 3
 ---
 
-# BDSH Commands
+# Commands
 
-bdsh ships with a small built in command set.
+bdsh resolves an input name in this order: session command definitions, built-in commands, then files under `bdsh/exec`. Definitions are expanded before execution. The shell splits input on spaces; it does not implement quoting or general shell syntax such as pipes and redirection.
 
-The shell resolves commands in this order: definitions, built in commands, then executable files in `bdsh/exec`.
+## Built-in commands
 
-## help
+| Command    | Usage                         | Description                                               |
+| ---------- | ----------------------------- | --------------------------------------------------------- |
+| `help`     | `help [command]`              | List commands or show one command's help.                 |
+| `echo`     | `echo [text ...]`             | Print the arguments.                                      |
+| `ld`       | `ld [directory]`              | List a directory's entries.                               |
+| `def`      | `def <keyword> <command ...>` | Define a command shortcut for this session.               |
+| `go`       | `go <directory>`              | Change directory; `go ~` returns to the user's profile.   |
+| `peek`     | `peek <file>`                 | Print a text file.                                        |
+| `cwd`      | `cwd`                         | Print the current directory.                              |
+| `ver`      | `ver`                         | Print the shell name and version.                         |
+| `throw`    | `throw [message ...]`         | Raise an exception, useful for exercising error handling. |
+| `exit`     | `exit`                        | End the interactive shell session.                        |
+| `net`      | `net [interface]`             | Show network interfaces and addresses.                    |
+| `hostname` | `hostname`                    | Print the system hostname.                                |
 
-Shows the available commands or the help text for one command.
+## Aliases
 
-## echo
+`ls` and `dir` are definitions for `ld`; `cd` is a definition for `go`. A definition can be overridden in the current session with `def`.
 
-Prints text to the terminal.
+## External commands
 
-## ld
-
-Lists the files and folders in the current directory. `ls` and `dir` resolve to this command.
-
-## def
-
-Creates a command definition. It works like a shortcut for shell commands.
-
-```bdsh
-/$ def hello echo hi
-defined 'hello' to run 'echo hi'
-/$ hello
-hi
-```
-
-## go
-
-Changes the current directory. `~` resolves to the current user's home folder.
-
-## peek
-
-Prints the contents of a file.
-
-## cwd
-
-Prints the current working directory.
-
-## ver
-
-Prints the shell banner.
-
-## throw
-
-Raises an exception. This is useful for testing shell error handling.
-
-## exit
-
-Exits the shell.
-
-## bpm
-
-Runs the BadOS Package Manager. Supported actions are `install`, `remove`, and `upgrade`.
-
-## net
-
-Shows network interface information. Pass an interface name to limit the output.
-
-## hostname
-
-Prints the current system hostname.
-
-## ping
-
-Pings a host with a configurable timeout and packet count.
-
-## badproc
-
-Starts a registered system service. See [Services](services.md) for more details.
+An executable installed under `bdsh/exec` can be run by its filename. bdsh loads it as a Python module and calls its `main` function with `session` and `args` keyword arguments. The function is expected to accept those two parameters. The standalone `boss` program is an installed entry point, not a built-in shell command.
