@@ -8,69 +8,60 @@ ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 ARTIFACTS := $(ROOT_DIR)/kernel/artifacts
 BDSH_SRC := $(ROOT_DIR)/src/bdsh
 
-.PHONY: help os-config os-update-config os-menuconfig os-linux-menuconfig \
-	os-save-config os-build os-linux-reconfigure os-check os-export os-package \
-	os-iso os-qemu os-qemu-iso os-clean release
+.PHONY: help load-osconfig update-osconfig menuconfig kernel-menuconfig \
+	save-osconfig build reconfigure-kernel check export-build os-package \
+	all run-direct run clean release
 
 help:
 	@printf '%s\n' \
-		'OS build commands:' \
-		'  make os-config          Initialize/reset Buildroot config from the tracked defconfig' \
-		'  make os-menuconfig      Configure Buildroot using the persistent Docker output volume' \
-		'  make os-linux-menuconfig Configure the kernel using the same Buildroot output' \
-		'  make os-save-config     Save current Buildroot options to the tracked defconfig' \
-		'  make os-linux-reconfigure Re-apply tracked kernel config and fragments' \
-		'  make os-build           Build the kernel and root filesystem' \
-		'  make os-check           Check required kernel options and image contents' \
-		'  make os-export          Copy bzImage and rootfs.cpio.gz into kernel/artifacts/' \
-		'  make os-iso             Build a bootable BIOS/UEFI ISO in kernel/artifacts/' \
-		'  make os-qemu            Build, export, and boot the image with macOS QEMU' \
-		'  make os-qemu-iso        Boot ISO with graphics and serial attached to this terminal' \
+		'BadOS build commands:' \
+		'  make load-osconfig       	Initialize/reset Buildroot config from the tracked defconfig' \
+		'  make menuconfig      		Configure Buildroot using the persistent Docker output volume' \
+		'  make kernel-menuconfig 		Configure the kernel using the same Buildroot output' \
+		'  make save-osconfig     		Save current Buildroot options to the tracked defconfig' \
+		'  make reconfigure-kernel 		Re-apply tracked kernel config and fragments' \
+		'  make build           		Build the kernel and root filesystem' \
+		'  make check           		Check required kernel options and image contents' \
+		'  make all             		Build a bootable BIOS/UEFI ISO in kernel/artifacts/' \
+		'  make run-direct            	Build, export, and boot the image with macOS QEMU' \
+		'  make run        				Boot ISO with graphics and serial attached to this terminal' \
 		'' \
 		'Override QEMU, JOBS, or MEMORY on the make command line as needed.'
 
-os-config:
+load-osconfig:
 	$(COMPOSE) run --rm --build buildroot init-config
 
-os-update-config:
+update-osconfig:
 	$(COMPOSE) run --rm --build buildroot olddefconfig
 
-os-menuconfig:
+menuconfig:
 	$(COMPOSE) run --rm --build buildroot menuconfig
 
-os-linux-menuconfig:
+kernel-menuconfig:
 	$(COMPOSE) run --rm --build buildroot linux-menuconfig
 
-os-save-config:
+save-osconfig:
 	$(COMPOSE) run --rm --build buildroot savedefconfig
 
-os-build:
+build:
 	$(COMPOSE) run --rm --build buildroot build -j$(JOBS)
-
-os-linux-reconfigure:
-	$(COMPOSE) run --rm --build buildroot linux-reconfigure
-
-os-check:
 	$(COMPOSE) run --rm --build buildroot check
-
-os-export:
 	mkdir -p "$(ARTIFACTS)"
 	$(COMPOSE) run --rm --build buildroot export
 
-os-package:
-	$(MAKE) os-build
-	$(MAKE) os-check
-	$(MAKE) os-export
-
-os-iso:
-	$(MAKE) os-package
+all:
+	$(MAKE) build
 	$(COMPOSE) run --rm --build iso-builder
 
-os-qemu: 
+reconfigure-kernel:
+	$(COMPOSE) run --rm --build buildroot linux-reconfigure
+
+
+run-direct: 
 ifeq ($(NO_BUILD),1)
 	@echo "Skipping build, check, and export."
 else
-	$(MAKE) os-package
+	$(MAKE) build
 endif
 
 	@command -v "$(QEMU)" >/dev/null 2>&1 || { \
@@ -86,11 +77,11 @@ endif
 		-append "console=ttyS0,115200 rdinit=/usr/bin/bdsh-init" \
 		-nographic
 
-os-qemu-iso:
+run:
 ifeq ($(NO_BUILD),1)
 	@echo "Skipping build, check, and ISO creation."
 else
-	$(MAKE) os-iso
+	$(MAKE) all
 endif
 
 	@command -v "$(QEMU)" >/dev/null 2>&1 || { \
@@ -108,7 +99,7 @@ endif
 		-cdrom "$(ARTIFACTS)/BadOS-$$version-x86_64.iso" \
 		-boot order=d
 
-os-clean:
+clean:
 	$(COMPOSE) run --rm --build buildroot clean
 
 release:
@@ -123,7 +114,7 @@ else
 	esac
 	@set -eu; \
 	rm -f "$(ARTIFACTS)"/*; \
-	$(MAKE) os-iso;
+	$(MAKE) all;
 endif
 
 	version=$$(sed -n 's/^__version__[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$(BDSH_SRC)/__version__.py"); \
