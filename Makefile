@@ -25,7 +25,7 @@ help:
 		'  make os-export          Copy bzImage and rootfs.cpio.gz into kernel/artifacts/' \
 		'  make os-iso             Build a bootable BIOS/UEFI ISO in kernel/artifacts/' \
 		'  make os-qemu            Build, export, and boot the image with macOS QEMU' \
-		'  make os-qemu-iso        Boot the ISO in QEMU' \
+		'  make os-qemu-iso        Boot ISO with graphics and serial attached to this terminal' \
 		'' \
 		'Override QEMU, JOBS, or MEMORY on the make command line as needed.'
 
@@ -103,6 +103,8 @@ endif
 		-m "$(MEMORY)" \
 		-object rng-random,filename=/dev/urandom,id=rng0 \
 		-device virtio-rng-pci,rng=rng0 \
+		-serial stdio \
+		-monitor none \
 		-cdrom "$(ARTIFACTS)/BadOS-$$version-x86_64.iso" \
 		-boot order=d
 
