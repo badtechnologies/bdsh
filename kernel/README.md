@@ -53,13 +53,15 @@ persistent storage.
 hybrid BIOS/UEFI bootable ISO using GRUB. The versioned ISO is written to
 `kernel/artifacts/BadOS-<version>-x86_64.iso`; `make os-qemu-iso` boots that ISO
 in QEMU with the graphical display and serial port attached to the launching
-terminal. The PC menu entry uses the graphical window; click the QEMU window
-to give it keyboard focus. The serial entry reads and writes through the
-terminal that launched QEMU. On a physical machine, the serial entry requires
-a connected serial console; use the PC entry for a monitor and keyboard. You
-can write this ISO to optical media or a USB drive, or attach it as virtual
-media. This is a live image: its root filesystem runs from RAM and changes are
-lost on reboot. It does not install to a disk or provide persistent user data.
+terminal. The PC menu entry uses the graphical window and mirrors kernel
+output to serial for diagnosis; click the QEMU window to give it keyboard
+focus. Its interactive shell uses the VGA virtual terminal. The serial entry
+reads and writes through the terminal that launched QEMU. On a physical
+machine, the serial entry requires a connected serial console; use the PC
+entry for a monitor and keyboard. You can write this ISO to optical media or
+a USB drive, or attach it as virtual media. This is a live image: its root
+filesystem runs from RAM and changes are lost on reboot. It does not install
+to a disk or provide persistent user data.
 
 The QEMU kernel command line explicitly selects
 `rdinit=/usr/bin/bdsh-init` as PID 1. `rdinit` is required because the CPIO
