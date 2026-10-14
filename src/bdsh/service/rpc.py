@@ -14,6 +14,7 @@ import socket
 from pathlib import Path
 
 from bdsh.service import BadOSService, ServiceUnavailableError
+from bdsh.types import SerializableDict
 from bdsh.util.serializing import validate_json_value
 
 
@@ -100,7 +101,7 @@ class RPCSocketService(BadOSService, name=None):
             request (any): JSON-formatted request data from client
 
         Returns:
-            dict[str, object]: id and message (or error) from usptream dispatched method
+            SerializableDict: id and message (or error) from usptream dispatched method
         """
         request_id = request.get("id")
         method = request.get("method")
@@ -125,14 +126,14 @@ class RPCSocketService(BadOSService, name=None):
                 }
             }
 
-    def dispatch(self, method: str, params: dict[str, object]):
+    def dispatch(self, method: str, params: SerializableDict):
         """Given the provided method name, this finds the corresponding method, dispatches
         it, and returns the value of the given method. This will only run methods marked
         with @servicemethod.
 
         Args:
             method (str): name of method to dispatch
-            params (dict[str, object]): parameters to pass to dispatched method
+            params (SerializableDict): parameters to pass to dispatched method
 
         Raises:
             ValueError: if the service method does not exist (or isn't marked with @servicemethod)
@@ -172,12 +173,12 @@ class RPCSocketClient:
         self.socket_path = _socket_path(proc_name)
         self._request_id = 0
 
-    def request(self, method: str, params: dict[str, object] | None = None):
+    def request(self, method: str, params: SerializableDict | None = None):
         """Requests an operation from the service this client was created for.
 
         Args:
             method (str): the name of the method to request
-            params (dict[str, object], optional): named dictionary of the parameters to include in the request
+            params (SerializableDict, optional): named dictionary of the parameters to include in the request
 
         Raises:
             ServiceUnavailableError: if the requested service is unavailable or does not exist

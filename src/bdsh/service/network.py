@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 import psutil
 
 from bdsh.service.rpc import RPCSocketClient, RPCSocketService, servicemethod
+from bdsh.types import SerializableDict
 
 
 class NetworkAPI(ABC):
@@ -20,10 +21,10 @@ class NetworkAPI(ABC):
     def hostname(self) -> str: ...
 
     @abstractmethod
-    def interfaces(self) -> dict: ...
+    def interfaces(self) -> SerializableDict: ...
 
     @abstractmethod
-    def interface_addresses(self) -> dict: ...
+    def interface_addresses(self) -> SerializableDict: ...
 
     @abstractmethod
     def resolve(self, hostname: str) -> str: ...
@@ -41,10 +42,10 @@ class NetworkClient(RPCSocketClient, NetworkAPI):
     def hostname(self) -> str:
         return self.request("hostname")
 
-    def interfaces(self) -> dict:
+    def interfaces(self) -> SerializableDict:
         return self.request("interfaces")
 
-    def interface_addresses(self) -> dict:
+    def interface_addresses(self) -> SerializableDict:
         return self.request("interface_addresses")
 
     def resolve(self, hostname: str) -> str:
