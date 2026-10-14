@@ -17,7 +17,7 @@ boss myservice.sys
 
 The service runs in the foreground until interrupted. BOSS discovers the service classes shipped with bdsh and calls the selected service's `start()` method.
 
-The `.sys` names are service identifiers, not files to execute. For the `badproc` entry point and service lifecycle, see [Services](services.md).
+The `.sys` names are service identifiers, not files to execute. For the `boss` entry point and service lifecycle, see [Services](services.md).
 
 ## Installing Services
 

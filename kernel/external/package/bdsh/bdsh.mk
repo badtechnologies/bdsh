@@ -17,7 +17,7 @@ define BDSH_CLEAN_STALE_TARGET_PACKAGE
 		$(TARGET_DIR)/usr/lib/python$(PYTHON3_VERSION_MAJOR)/site-packages/bdsh-*.dist-info \
 		$(TARGET_DIR)/usr/bin/bdsh \
 		$(TARGET_DIR)/usr/bin/bdsh-init \
-		$(TARGET_DIR)/usr/bin/badproc
+		$(TARGET_DIR)/usr/bin/boss
 endef
 BDSH_PRE_INSTALL_TARGET_HOOKS += BDSH_CLEAN_STALE_TARGET_PACKAGE
 

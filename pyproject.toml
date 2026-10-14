@@ -40,9 +40,7 @@ classifiers = [
 license = { file = "LICENSE" }
 
 [project.optional-dependencies]
-test = [
-    "pytest>=8.0",
-]
+test = ["pytest>=8.0"]
 
 [project.urls]
 Homepage = "https://badtechnologies.github.io/bdsh"
@@ -53,7 +51,7 @@ Issues = "https://github.com/badtechnologies/bdsh/issues"
 [project.scripts]
 bdsh = "bdsh.__main__:main"
 bdsh-init = "bdsh.init:main"
-badproc = "bdsh.service.__main__:main"
+boss = "bdsh.service.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

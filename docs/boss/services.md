@@ -10,11 +10,11 @@ Services are registered Python classes that run in the background or provide an 
 
 ## Starting a built-in service
 
-Run `badproc` in a terminal for each service:
+Run `boss` in a terminal for each service:
 
 ```sh
-badproc badlogon.sys
-badproc network.sys
+boss badlogon.sys
+boss network.sys
 ```
 
 Each process remains in the foreground. Stop it with Ctrl-C. The `boss <service>` shell command starts the same service from an interactive shell. The normal `bdsh` login needs `badlogon.sys`; network-related commands need `network.sys`.

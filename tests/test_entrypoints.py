@@ -19,7 +19,8 @@ def test_shell_login_retries_invalid_credentials_then_returns_user(monkeypatch, 
         None,
         {"username": "alice", "password_hash": "stored-hash"},
     ]
-    monkeypatch.setattr(shell_entrypoint, "BadLogonClient", Mock(return_value=client))
+    monkeypatch.setattr(shell_entrypoint, "BadLogonClient",
+                        Mock(return_value=client))
     username = Mock(side_effect=["alice", "alice"])
     password = Mock(side_effect=["wrong", "correct"])
     monkeypatch.setattr("builtins.input", username)
@@ -41,13 +42,18 @@ def test_shell_entrypoint_starts_shell_and_restores_working_directory(monkeypatc
     """Start an authenticated shell and restore the initial process directory."""
     user = User("alice", "hash")
     shell = Mock()
-    monkeypatch.setattr(shell_entrypoint.os, "getcwd", Mock(return_value="/original"))
+    monkeypatch.setattr(shell_entrypoint.os, "getcwd",
+                        Mock(return_value="/original"))
     chdir = Mock()
     monkeypatch.setattr(shell_entrypoint.os, "chdir", chdir)
-    monkeypatch.setattr(shell_entrypoint.os, "getenv", Mock(return_value="false"))
-    monkeypatch.setattr(shell_entrypoint, "shell_login", Mock(return_value=user))
-    monkeypatch.setattr(shell_entrypoint, "ConsoleTerminal", Mock(return_value="terminal"))
-    monkeypatch.setattr(shell_entrypoint, "Session", Mock(return_value="session"))
+    monkeypatch.setattr(shell_entrypoint.os, "getenv",
+                        Mock(return_value="false"))
+    monkeypatch.setattr(shell_entrypoint, "shell_login",
+                        Mock(return_value=user))
+    monkeypatch.setattr(shell_entrypoint, "ConsoleTerminal",
+                        Mock(return_value="terminal"))
+    monkeypatch.setattr(shell_entrypoint, "Session",
+                        Mock(return_value="session"))
     monkeypatch.setattr(shell_entrypoint, "Shell", Mock(return_value=shell))
 
     shell_entrypoint.main()
@@ -61,9 +67,11 @@ def test_shell_entrypoint_starts_shell_and_restores_working_directory(monkeypatc
 def test_service_entrypoint_executes_boss_with_process_arguments(monkeypatch):
     """Forward CLI arguments to the virtual supervisor shell."""
     shell = Mock()
-    monkeypatch.setattr(sys, "argv", ["badproc", "start", "network.sys"])
-    monkeypatch.setattr(service_entrypoint, "ConsoleTerminal", Mock(return_value="terminal"))
-    monkeypatch.setattr(service_entrypoint, "Session", Mock(return_value="session"))
+    monkeypatch.setattr(sys, "argv", ["boss", "start", "network.sys"])
+    monkeypatch.setattr(service_entrypoint, "ConsoleTerminal",
+                        Mock(return_value="terminal"))
+    monkeypatch.setattr(service_entrypoint, "Session",
+                        Mock(return_value="session"))
     monkeypatch.setattr(service_entrypoint, "Shell", Mock(return_value=shell))
 
     service_entrypoint.main()

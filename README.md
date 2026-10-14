@@ -36,7 +36,7 @@ The installer creates the shell root, config directory, and first user.
 Before logging in, start the BadLogon service in one terminal:
 
 ```sh
-badproc badlogon.sys
+boss badlogon.sys
 ```
 
 Then run `bdsh` in another terminal. The shell prompts for a username and

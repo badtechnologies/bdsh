@@ -13,7 +13,7 @@ Install bdsh from PyPI:
 python3 -m pip install bdsh
 ```
 
-The package requires Python 3.10 or newer and installs the `bdsh`, `bdsh-init`, and `badproc` commands.
+The package requires Python 3.10 or newer and installs the `bdsh`, `bdsh-init`, and `boss` commands.
 
 ## Initialize a local shell root
 
@@ -32,7 +32,7 @@ The data directory is rooted at `./bdsh` relative to the process's current worki
 The normal `bdsh` command prompts for a username and password. It expects the BadLogon service to be running; start it separately with:
 
 ```sh
-badproc badlogon.sys
+boss badlogon.sys
 ```
 
 In a second terminal, run `bdsh`. See [Services](boss/services.md) for service lifecycle details.
