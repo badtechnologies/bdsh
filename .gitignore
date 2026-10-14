@@ -167,3 +167,7 @@ cython_debug/
 .jekyll-cache
 _site
 Gemfile.lock
+
+# kernel
+kernel/artifacts/
+!rootfs-overlay/

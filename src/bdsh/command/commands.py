@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import List, Dict, TYPE_CHECKING
 
 from bdsh import NL, SHELL_COPYRIGHT
@@ -86,7 +88,7 @@ class GoCommand(Command):
 class PeekCommand(Command):
     def execute(self, args: List[str]):
         path = self.session.cwd.joinpath(args[1])
-        if path.is_file(follow_symlinks=True):
+        if path.is_file():
             with open(path, 'r') as f:
                 self.session.io.println(f.read())
         else:
@@ -114,4 +116,3 @@ def register_commands(session: Session) -> Dict[str, Command]:
         "ping": PingCommand(session),
         "boss": BOSSCommand(session),
     }
-

@@ -1,0 +1,28 @@
+name: bados
+
+services:
+  buildroot:
+    build:
+      context: ./kernel/docker
+      dockerfile: Dockerfile
+      args:
+        BUILDROOT_VERSION: "2025.02.18"
+    working_dir: /opt/buildroot
+    stdin_open: true
+    tty: true
+    environment:
+      TERM: xterm-256color
+    volumes:
+      - ./:/workspace/bdsh:ro
+      - ./kernel/external:/workspace/kernel/external
+      - ./kernel/artifacts:/workspace/kernel/artifacts
+      - bados-build:/build
+      - buildroot-downloads:/downloads
+    entrypoint: ["/usr/local/bin/bados-buildroot"]
+    command: ["help"]
+
+volumes:
+  bados-build:
+    external: true
+  buildroot-downloads:
+    name: bados-buildroot-downloads

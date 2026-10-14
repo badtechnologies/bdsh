@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import re
 from dataclasses import dataclass, field, fields
@@ -18,7 +20,7 @@ BPL_REPO = 'badtechnologies/bpl/main'
 BPM_APP_DIR = OSPaths.APPLICATIONS.joinpath("bpm")  # for package installations
 BPM_STORE_DIR = OSPaths.CONFIGS.joinpath("bpm")  # for a store of all packages
 
-parser = argparse.ArgumentParser(description='BadOS Package Manager', color=False, add_help=False)
+parser = argparse.ArgumentParser(description='BadOS Package Manager', add_help=False)
 parser.add_argument('action', type=str, choices=['install', 'remove', 'upgrade'], help='action to perform')
 parser.add_argument('packages', nargs='+', type=str, help='packages to manage')
 parser.add_argument('-y', '--yes', action='store_true',

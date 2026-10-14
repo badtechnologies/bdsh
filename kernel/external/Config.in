@@ -1,0 +1,2 @@
+source "$BR2_EXTERNAL_BADOS_KERNEL_PATH/package/python-icmplib/Config.in"
+source "$BR2_EXTERNAL_BADOS_KERNEL_PATH/package/bdsh/Config.in"

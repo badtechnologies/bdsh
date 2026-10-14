@@ -10,6 +10,12 @@ authors = [
 dynamic = ["version"]
 description = "BadOS Dynamic Shell"
 requires-python = ">=3.10"
+dependencies = [
+    "argon2-cffi>=23.1.0",
+    "icmplib>=3.0.4",
+    "psutil>=5.9.0",
+    "requests>=2.31.0",
+]
 readme = "README.md"
 keywords = ["shell", "terminal", "cli", "command-line", "BadOS", "operating-system"]
 classifiers = [
@@ -35,6 +41,7 @@ Issues = "https://github.com/badtechnologies/bdsh/issues"
 
 [project.scripts]
 bdsh = "bdsh.__main__:main"
+bdsh-init = "bdsh.init:main"
 badproc = "bdsh.service.__main__:main"
 
 [tool.setuptools.packages.find]

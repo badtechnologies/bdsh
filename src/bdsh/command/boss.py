@@ -25,7 +25,7 @@ class BOSSCommand(Command):
         super().__init__(session)
         _discover_services()
 
-        self.parser = argparse.ArgumentParser(description="BadOS Service Supervisor (BOSS)", color=False)
+        self.parser = argparse.ArgumentParser(description="BadOS Service Supervisor (BOSS)")
         self.parser.add_argument('service', type=str, help='name of service to launch')
 
     def execute(self, argv: List[str]):
