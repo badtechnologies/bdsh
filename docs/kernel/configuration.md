@@ -10,7 +10,7 @@ The tracked Buildroot configuration is `kernel/external/configs/bados_x86_64_def
 
 ## Buildroot options
 
-The defconfig selects x86_64, Linux 6.12.27, Python 3, the local bdsh package, and a gzip-compressed CPIO root filesystem. It uses the QEMU x86_64 Linux configuration as a baseline, then adds `kernel/external/board/bados/linux.config` as a kernel fragment.
+The defconfig selects x86_64, Linux 6.12.27, Python 3, the local bdsh package, and a gzip-compressed CPIO root filesystem. It uses the QEMU x86_64 Linux configuration as a baseline, then adds `kernel/external/board/bados/kernel.config` as a kernel fragment.
 
 To change Buildroot selections interactively:
 
