@@ -6,6 +6,7 @@ JOBS ?= 4
 MEMORY ?= 512M
 ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 ARTIFACTS := $(ROOT_DIR)/kernel/artifacts
+BDSH_SRC := $(ROOT_DIR)/src/bdsh
 
 .PHONY: help os-config os-update-config os-menuconfig os-linux-menuconfig \
 	os-save-config os-build os-linux-reconfigure os-check os-export os-qemu \
@@ -83,6 +84,9 @@ os-clean:
 	$(COMPOSE) run --rm --build buildroot clean
 
 release:
+ifeq ($(NO_BUILD),1)
+	@echo "Skipping build, check, and export."
+else
 	@printf 'This will delete all files in $(ARTIFACTS) and create a GitHub release. Continue? [y/N] '; \
 	read answer; \
 	case "$$answer" in \
@@ -91,7 +95,9 @@ release:
 	esac
 	@set -eu; \
 	rm -f "$(ARTIFACTS)"/*; \
-	$(MAKE) os-package; \
-	version=$$(sed -n 's/^__version__[[:space:]]*=[[:space:]]*["'\'']\{0,1\}v\{0,1\}\([0-9][^"'\'']*\)["'\'']\{0,1\}[[:space:]]*$$/\1/p' __version__); \
-	test -n "$$version" || { echo "Could not read version from __version__" >&2; exit 1; }; \
+	$(MAKE) os-package; 
+endif
+
+	version=$$(sed -n 's/^__version__[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$(BDSH_SRC)/__version__.py"); \
+	test -n "$$version" || { echo "Could not read version" >&2; exit 1; }; \
 	gh release create "v$$version" "$(ARTIFACTS)"/* --generate-notes
