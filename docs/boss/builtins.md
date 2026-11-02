@@ -23,6 +23,6 @@ The `hostname`, `net`, and `ping` commands use this service through the RPC clie
 
 This service validates login credentials and keeps the user database.
 
-It stores usernames and Argon2 password hashes in `bdsh/cfg/userman`. Loading the database creates profile directories under `bdsh/prf/<username>`. The `bdsh` login flow requires this service to be running; `bdsh-init` does not use it.
+It stores usernames and Argon2 password hashes in `bdsh/cfg/userman`. Loading the database creates profile directories under `bdsh/prf/<username>`. The `bdsh` login flow requires this service to be running.
 
 See [Services](services.md) for how to start the services and how their RPC sockets work.

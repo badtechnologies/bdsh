@@ -42,15 +42,10 @@ boss badlogon.sys
 Then run `bdsh` in another terminal. The shell prompts for a username and
 password, then starts an interactive session.
 
-## Minimal boot profile
+## BOSS - system supervisor
 
-For a minimal boot prompt that does not start services or request a BadLogon
-login, run:
+BOSS manages the system boot sequence and supervises all processes.
 
 ```sh
-bdsh-init
+boss
 ```
-
-The same entry point is available as `python3 -m bdsh.init`. It starts a
-minimal session as the `default` user in `bdsh/prf/default`, relative to the
-process's working directory. It does not start services or prompt for login.

@@ -32,4 +32,4 @@ The fragment also enables framebuffer console support. Keep Buildroot's QEMU ker
 
 ## Build checks
 
-`make build` runs the image check after the build. It verifies the required kernel options, executable `/usr/bin/bdsh-init`, target Python interpreter, Python zlib extension, and generated `bzImage` and `rootfs.cpio.gz` images before exporting the boot artifacts.
+`make build` runs the image check after the build. It verifies the required kernel options, executable `/usr/bin/boss`, target Python interpreter, Python zlib extension, and generated `bzImage` and `rootfs.cpio.gz` images before exporting the boot artifacts.

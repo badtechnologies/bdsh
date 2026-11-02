@@ -123,7 +123,7 @@ case "$command_name" in
 		fi
 
 		for path in \
-			"$OUT/target/usr/bin/bdsh-init" \
+			"$OUT/target/usr/bin/boss" \
 			"$OUT/target/usr/bin/python3" \
 			"$OUT/images/bzImage" \
 			"$OUT/images/rootfs.cpio.gz"
@@ -134,8 +134,8 @@ case "$command_name" in
 			fi
 		done
 
-		if [ ! -x "$OUT/target/usr/bin/bdsh-init" ]; then
-			echo "The bdsh-init console script must be executable in the target filesystem." >&2
+		if [ ! -x "$OUT/target/usr/bin/boss" ]; then
+			echo "The boss console script must be executable in the target filesystem." >&2
 			exit 1
 		fi
 

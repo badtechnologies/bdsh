@@ -74,7 +74,7 @@ endif
 		-device virtio-rng-pci,rng=rng0 \
 		-kernel "$(ARTIFACTS)/bzImage" \
 		-initrd "$(ARTIFACTS)/rootfs.cpio.gz" \
-		-append "console=ttyS0,115200 rdinit=/usr/bin/bdsh-init" \
+		-append "console=ttyS0,115200 rdinit=/usr/bin/boss" \
 		-nographic
 
 run:

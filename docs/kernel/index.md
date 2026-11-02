@@ -8,7 +8,7 @@ has_children: true
 
 The `kernel/` tree builds a live x86_64 BadOS image. It uses Buildroot 2025.02.18 to build Linux and a compressed CPIO initramfs, then can wrap those images in a bootable BIOS/UEFI ISO.
 
-The image starts `bdsh-init` as PID 1. It is a bootable shell environment, not a disk installer; the root filesystem is in RAM and is lost at shutdown.
+The image starts `boss` as PID 1. It is a bootable shell environment, not a disk installer; the root filesystem is in RAM and is lost at shutdown.
 
 ## Guides
 
