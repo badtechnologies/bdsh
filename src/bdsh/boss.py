@@ -12,6 +12,18 @@ from bdsh import OSPaths
 
 
 class BOSS:
+    """BOSS is the system supervisor and boot sequence for BadOS.
+    Alongside managing the BDSH shell, it can spawn and supervise
+    other processes, allowing it to operate as a service supervisor.
+
+    Raises:
+        RuntimeError: if BOSS is started not as PID 1
+
+    See Also:
+        bdsh.command.boss: command interface for service mgmt.
+        bdsh.shell: managed shell process that the user sees
+    """
+
     BIN_PYTHON = "/usr/bin/python3"
     BIN_BDSH = "/usr/bin/bdsh"
     BDSH_RESTART_DELAY = 2
@@ -22,10 +34,10 @@ class BOSS:
 
         self.managed_processes: dict[int, str] = {}
 
-    def handle_shutdown(self, signum, frame):
+    def handle_shutdown(self, _signum, _frame):
         self.shutdown_requested = True
 
-    def handle_sigchld(self, signum, frame):
+    def handle_sigchld(self, _signum, _frame):
         self.children_changed = True
 
     def reap_children(self):
@@ -67,7 +79,7 @@ class BOSS:
 
                 os.execv(executable, [executable, *args])
 
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught
                 os._exit(127)
 
         self.managed_processes[pid] = name
@@ -125,7 +137,7 @@ class BOSS:
         signal.signal(signal.SIGINT, self.handle_shutdown)
         signal.signal(signal.SIGCHLD, self.handle_sigchld)
 
-        print("bdsh boss: system initialization complete")
+        print("boss: system initialization complete")
 
         # start shell
         shell_pid = self.spawn("bdsh", BOSS.BIN_PYTHON, [BOSS.BIN_BDSH])
