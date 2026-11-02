@@ -12,7 +12,7 @@ The ISO and direct-QEMU targets both start the Linux kernel with a compressed CP
 rdinit=/usr/bin/boss
 ```
 
-`rdinit` selects the init program inside the initramfs. Buildroot installs the `boss` console entry point, which calls `bdsh.init:main`. That entry point creates the shell data directories and starts the minimal shell as user `default`; it does not ask for a login or start the BadLogon and network services.
+`rdinit` selects the init program inside the initramfs. Buildroot installs the `boss` console entry point, which calls `bdsh.boss:main`. That entry point creates the shell data directories and starts the minimal shell as user `default`; it does not ask for a login or start the BadLogon and network services.
 
 ## ISO menu
 

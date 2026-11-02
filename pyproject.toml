@@ -50,7 +50,7 @@ Issues = "https://github.com/badtechnologies/bdsh/issues"
 
 [project.scripts]
 bdsh = "bdsh.__main__:main"
-boss = "bdsh.init:main"
+boss = "bdsh.boss:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
