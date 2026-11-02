@@ -6,7 +6,7 @@ Author: Logan Dhillon <dev@logandhillon.com>
 
 from unittest.mock import Mock, call
 
-from bdsh import init
+from bdsh import boss
 
 
 def test_main_creates_all_os_paths_and_default_profile(monkeypatch):
@@ -17,11 +17,11 @@ def test_main_creates_all_os_paths_and_default_profile(monkeypatch):
     profiles = Mock(name="profiles")
     profiles.joinpath.return_value = default_profile
 
-    monkeypatch.setattr(init.OSPaths, "all", Mock(return_value=os_paths))
-    monkeypatch.setattr(init.OSPaths, "PROFILES", profiles)
-    monkeypatch.setattr(init, "Shell", Mock())
+    monkeypatch.setattr(boss.OSPaths, "all", Mock(return_value=os_paths))
+    monkeypatch.setattr(boss.OSPaths, "PROFILES", profiles)
+    monkeypatch.setattr(boss, "Shell", Mock())
 
-    init.main()
+    boss.main()
 
     for path in (*os_paths, default_profile):
         assert path.mkdir.call_args_list == [call(parents=True, exist_ok=True)]
@@ -43,14 +43,14 @@ def test_main_starts_shell_with_console_default_user_and_session(monkeypatch):
     profiles = Mock()
     profiles.joinpath.return_value = default_profile
 
-    monkeypatch.setattr(init.OSPaths, "all", Mock(return_value=[]))
-    monkeypatch.setattr(init.OSPaths, "PROFILES", profiles)
-    monkeypatch.setattr(init, "ConsoleTerminal", console_factory)
-    monkeypatch.setattr(init, "User", user_factory)
-    monkeypatch.setattr(init, "Session", session_factory)
-    monkeypatch.setattr(init, "Shell", shell_factory)
+    monkeypatch.setattr(boss.OSPaths, "all", Mock(return_value=[]))
+    monkeypatch.setattr(boss.OSPaths, "PROFILES", profiles)
+    monkeypatch.setattr(boss, "ConsoleTerminal", console_factory)
+    monkeypatch.setattr(boss, "User", user_factory)
+    monkeypatch.setattr(boss, "Session", session_factory)
+    monkeypatch.setattr(boss, "Shell", shell_factory)
 
-    init.main()
+    boss.main()
 
     # Confirm startup wiring uses a fresh console and the default account.
     assert console_factory.call_args_list == [call()]
