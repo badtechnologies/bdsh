@@ -22,6 +22,7 @@ class Session:
         self.io = io
         self.cwd = get_shell_path()
         self.is_running = False
+        self.in_kernel_mode = os.getpid() == 1
 
         self.env = os.environ.copy()
         self.env['PYTHONPATH'] = str(Path(__file__).resolve().parent)
@@ -54,4 +55,7 @@ class Session:
 
     def set_is_running(self, is_running: bool):
         """Set whether the shell session is running."""
+        if self.in_kernel_mode:
+            self.io.println("cannot modify runtime state in kernel mode")
+            return
         self.is_running = is_running
