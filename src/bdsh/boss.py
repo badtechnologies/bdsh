@@ -153,5 +153,9 @@ class BOSS:
         self.shutdown()
 
 
-if __name__ == "__main__":
+def main():
     BOSS().start_os()
+
+
+if __name__ == "__main__":
+    main()
