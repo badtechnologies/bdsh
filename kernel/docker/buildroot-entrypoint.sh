@@ -72,6 +72,25 @@ case "$command_name" in
 		buildroot_make all "$@"
 		exit
 		;;
+	refresh-bdsh)
+		if [ ! -f "$OUT/.config" ]; then
+			echo "No Buildroot config found; run 'make build' before 'make run-dev'." >&2
+			exit 1
+		fi
+		for image in bzImage rootfs.cpio.gz
+		do
+			if [ ! -f "$OUT/images/$image" ]; then
+				echo "Built OS image missing: $OUT/images/$image (run 'make build' first)." >&2
+				exit 1
+			fi
+		done
+		buildroot_make bdsh-dirclean
+		buildroot_make bdsh
+		buildroot_make rootfs-cpio
+		"$0" check
+		"$0" export
+		exit
+		;;
 	savedefconfig)
 		buildroot_make savedefconfig BR2_DEFCONFIG="$DEFCONFIG"
 		exit

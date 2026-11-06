@@ -41,6 +41,14 @@ make run
 
 `run-direct` boots the kernel and initramfs directly with a serial console. `run` boots the ISO with QEMU's graphical display and serial output attached to the launching terminal; use the ISO's serial menu entry for shell interaction through that terminal. QEMU uses 512 MB of memory by default.
 
+For Python-only development changes, use:
+
+```sh
+make dev
+```
+
+This requires a prior successful `make build`. It clears and reinstalls the local bdsh package from the working tree, then lets Buildroot incrementally refresh the initramfs before recreating and booting the ISO. It does not intentionally clean or rebuild the kernel or unrelated packages.
+
 ## Make variables
 
 Override defaults on the command line:
@@ -63,5 +71,6 @@ make run QEMU=/path/to/qemu-system-x86_64
 | `make save-osconfig`      | Save the current Buildroot selections to the tracked defconfig.                 |
 | `make reconfigure-kernel` | Reapply the tracked kernel baseline and fragment.                               |
 | `make clean`              | Run Buildroot's clean target.                                                   |
+| `make run-dev`            | Reinstall bdsh from the working tree and boot the incrementally refreshed ISO.  |
 
 `make release` deletes files under `kernel/artifacts/` after a confirmation prompt, rebuilds the ISO, then creates a GitHub release using `gh`. Use it only with the intended repository and GitHub CLI account authenticated.

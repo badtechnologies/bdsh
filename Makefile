@@ -10,7 +10,7 @@ BDSH_SRC := $(ROOT_DIR)/src/bdsh
 
 .PHONY: help load-osconfig update-osconfig menuconfig kernel-menuconfig \
 	save-osconfig build reconfigure-kernel check export-build os-package \
-	all run-direct run clean release
+	all run-direct run run-dev clean release
 
 help:
 	@printf '%s\n' \
@@ -25,6 +25,7 @@ help:
 		'  make all             		Build a bootable BIOS/UEFI ISO in kernel/artifacts/' \
 		'  make run-direct            	Build, export, and boot the image with macOS QEMU' \
 		'  make run        				Boot ISO with graphics and serial attached to this terminal' \
+		'  make run-dev               	Reinstall bdsh and boot the existing OS build' \
 		'' \
 		'Override QEMU, JOBS, or MEMORY on the make command line as needed.'
 
@@ -84,6 +85,24 @@ else
 	$(MAKE) all
 endif
 
+	@command -v "$(QEMU)" >/dev/null 2>&1 || { \
+		echo "QEMU not found: install it on macOS (for example: brew install qemu)" >&2; \
+		exit 1; \
+	}
+	version=$$(sed -n 's/^__version__[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$(BDSH_SRC)/__version__.py"); \
+	test -n "$$version" || { echo "Could not read version" >&2; exit 1; }; \
+	$(QEMU) \
+		-m "$(MEMORY)" \
+		-object rng-random,filename=/dev/urandom,id=rng0 \
+		-device virtio-rng-pci,rng=rng0 \
+		-serial stdio \
+		-monitor none \
+		-cdrom "$(ARTIFACTS)/BadOS-$$version-x86_64.iso" \
+		-boot order=d
+
+dev:
+	$(COMPOSE) run --rm --build buildroot refresh-bdsh
+	$(COMPOSE) run --rm --build iso-builder
 	@command -v "$(QEMU)" >/dev/null 2>&1 || { \
 		echo "QEMU not found: install it on macOS (for example: brew install qemu)" >&2; \
 		exit 1; \
