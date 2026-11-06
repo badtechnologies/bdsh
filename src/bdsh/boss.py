@@ -9,6 +9,7 @@ import signal
 import time
 
 from bdsh import OSPaths
+from bdsh.service.system import SYSTEM_SERVICES
 
 
 class BOSS:
@@ -62,7 +63,7 @@ class BOSS:
             except InterruptedError:
                 continue
 
-    def spawn(self, name, executable, args=None):
+    def spawn(self, name: str, executable: str, args: list[str] | None = None):
         """Spawn a supervised child process."""
 
         if args is None:
@@ -83,8 +84,6 @@ class BOSS:
                 os._exit(127)
 
         self.managed_processes[pid] = name
-
-        print(f"boss: started {name} (pid {pid})")
 
         return pid
 
@@ -126,7 +125,8 @@ class BOSS:
         """Initialize and supervise the operating system."""
 
         if os.getpid() != 1:
-            raise RuntimeError("boss: must run as PID 1")
+            print("WARN: BadOS started as child process!\nstarting emulation mode...")
+            self.start_emulation_mode()
 
         # init filesystem
         for path in OSPaths.all():
@@ -141,6 +141,8 @@ class BOSS:
 
         # start shell
         shell_pid = self.spawn("bdsh", BOSS.BIN_PYTHON, [BOSS.BIN_BDSH])
+        for service in SYSTEM_SERVICES:
+            self.spawn(service.name, BOSS.BIN_PYTHON, ["-m", "bdsh.service.executor", f"{service.__module__}:{service.__qualname__}"])
 
         restart_at = None
 
@@ -163,6 +165,9 @@ class BOSS:
             time.sleep(0.1)
 
         self.shutdown()
+
+    def start_emulation_mode(self):
+        raise NotImplementedError("fatal: emulation mode does not exist yet")
 
 
 def main():
