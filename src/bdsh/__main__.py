@@ -8,7 +8,6 @@ from bdsh.io.console import ConsoleTerminal
 from bdsh.service import ServiceUnavailableError
 from bdsh.service.badlogon import User
 from bdsh.service.badlogon import BadLogonClient
-from bdsh.service.dispatch import dispatch_system_services
 from bdsh.session import Session
 from bdsh.shell import Shell
 
@@ -40,10 +39,6 @@ def shell_login() -> User:
 
 def main():
     _cwd = os.getcwd()
-
-    if os.getenv("BDSH_DISPATCH_SRV_PROC", "").lower() in ("true", "1"):
-        print("proc: dispatching system services (BDSH_DISPATCH_SRV_PROC)")
-        dispatch_system_services()
 
     user = shell_login()
     bdsh = Shell(Session(ConsoleTerminal(), user))

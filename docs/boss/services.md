@@ -19,8 +19,6 @@ boss network.sys
 
 Each process remains in the foreground. Stop it with Ctrl-C. The `boss <service>` shell command starts the same service from an interactive shell. The normal `bdsh` login needs `badlogon.sys`; network-related commands need `network.sys`.
 
-For a shell session that manages its services itself, set `BDSH_DISPATCH_SRV_PROC=true` (or `1`) before running `bdsh`. This dispatches both built-in services on background threads before the login prompt.
-
 ## Service registration and RPC
 
 BOSS discovers the service classes under `bdsh.service`. A service registers its identifier with `BadOSService` and implements `start()`, `stop()`, and shutdown handling. RPC methods must be marked with `@servicemethod`; the dispatcher only exposes marked methods.
